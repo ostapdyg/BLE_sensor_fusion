@@ -1,6 +1,9 @@
 function [hs] = Multipath(omega, dist, ampl_coeff)
 
-c = physconst('LightSpeed');
+pkg load miscellaneous;
+
+% c = physconst('LightSpeed');
+c = physical_constant('speed of light in vacuum');
 multipaths = zeros( length(omega),length(dist) );
 
 for f = 1:length(omega)

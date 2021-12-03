@@ -1,8 +1,10 @@
 clear all
 
-addpath( genpath( [ pwd '/Utilities' ] ) );
+addpath( genpath( [ pwd '/simul/matlab/Utilities' ] ) )
 
-rng(10)
+% rng(10)
+randn("seed",10)
+rand("seed",10)
 
 key_veloc_kmh = 5;
 %track = 10:-0.1:0.1;
