@@ -38,12 +38,12 @@ def main():
     print(pack_times)
 
     # time_flow = repmat(onepack_times, length(pack_times), 1) + repmat(pack_times', 1, length(onepack_times));
-    time_flow = np.matlib.repmat(onepack_times, len(pack_times), 1) + np.matlib.repmat(pack_times.transpose(), 1, len(onepack_times))
+    time_flow = np.matlib.repmat(onepack_times, len(pack_times), 1) + np.matlib.repmat(np.array([pack_times]).transpose(), 1, len(onepack_times))
 
     # time_flow = time_flow';
     time_flow = ctranspose(time_flow)
     # time_flow = time_flow(:);
-    time_flow = np.array(*time_flow)
+    time_flow = np.array(time_flow)
     # # time_flow = 0:delta_t:delta_t*1000;
 
     spectr_algo = 1; # 1 - FFT, 2 - MUSIC
@@ -68,7 +68,7 @@ def main():
     # freq_meas_coll = NaN(freq_numb, length(time_flow));
     freq_meas_coll = np.resize(np.array(np.nan), (freq_numb, len(time_flow))) 
     # dist = zeros(min(length(time_flow), length(time_flow)), 4);
-    dist = np.zeros(min(len(time_flow), len(time_flow)), 4)
+    dist = np.zeros((min(len(time_flow), len(time_flow)), 4))
 
     ## Determine signals along track
     # for t_idx = 1:length(time_flow)
