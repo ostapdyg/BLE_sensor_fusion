@@ -7,6 +7,8 @@ function [hs] = Multipath(omega, dist, ampl_coeff)
 c = 299792458;
 
 multipaths = zeros( length(omega),length(dist) );
+##printf("    Multipath multipaths:%s\n",mat2str(size(multipaths)))
+##printf("    Multipath ampl_coeff:%s\n",mat2str(size(ampl_coeff)))
 
 for f = 1:length(omega)
     for k = 1:length(dist)

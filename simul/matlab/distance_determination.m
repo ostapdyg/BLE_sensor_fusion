@@ -21,10 +21,16 @@ delta_t = 300e-6; % time to do one frequency IQ measurement
 
 onepack_times = delta_t * (0:7); % times of measurement 8 frequencies in a pack
 pack_times = 0:2.4e-3:7; % times of packs measurements staring
+printf("pack_times:%s\n",mat2str(size(pack_times)))
+printf("onepack_times:%s\n",mat2str(size(onepack_times)))
 
 time_flow = repmat(onepack_times, length(pack_times), 1) + repmat(pack_times', 1, length(onepack_times));
+printf("time_flow:%s\n",mat2str(size(time_flow)))
+
 time_flow = time_flow';
 time_flow = time_flow(:);
+printf("time_flow:%s\n",mat2str(size(time_flow)))
+
 % time_flow = 0:delta_t:delta_t*1000;
 
 spectr_algo = 1; % 1 - FFT, 2 - MUSIC
@@ -44,9 +50,13 @@ noises=[]; % In this case default numbers will be used
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 spec_1_evol = zeros(length(time_flow), length(sampl_dist));
 freq_meas_coll = NaN(freq_numb, length(time_flow));
-dist = zeros(min(length(time_flow), length(time_flow)), 4);
+printf("freq_meas_coll:%s\n",mat2str(size(freq_meas_coll)))
 
+dist = zeros(min(length(time_flow), length(time_flow)), 4);
+printf("dist:%s\n",mat2str(size(dist)))
 %% Determine signals along track
+dirty = 1;
+
 for t_idx = 1:length(time_flow)
     if freq_set_type == 1
         f1_idx = mod(t_idx - 1, length(freq_meas_set));
@@ -57,10 +67,21 @@ for t_idx = 1:length(time_flow)
     end
 
     [dist(t_idx, :), ampl_coeff] = generate_point(start_point_m, time_flow(t_idx), key_veloc_kmh, scenario_matrix, scenario_noise);
+##    printf("    ampl_coeff:%s\n",mat2str(size(ampl_coeff)))
+    if dirty == 1
+        printf("    ampl_coeff:%s\n",mat2str(size(ampl_coeff)))
+    endif
     [~, signals] = signals_model(curr_freq, dist(t_idx, :), ampl_coeff, delays, noises);
-
+       
     freq_meas_coll(:, t_idx) = NaN;
+
     freq_meas_coll(round(curr_freq / 2) + 1, t_idx) = signals;
+     if dirty == 1
+          printf("    signals:%s\n",mat2str(size(signals)))
+        printf("    freq_meas_coll:%s\n",mat2str(size(freq_meas_coll)))
+
+      dirty = 0;
+    endif
 end
 
 %% Estimate distances

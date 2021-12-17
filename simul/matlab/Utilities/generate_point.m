@@ -25,4 +25,7 @@ ampl_coeff = scenario_matrix;
 ampl_coeff = repmat(ampl_coeff , size(dist, 1), 1);
 ampl_coeff = ampl_coeff + scenario_noise * rand(size(ampl_coeff));
 
+##printf("    gen_p dist:%s\n",mat2str(size(dist)))
+##printf("    gen_p ampl_coeff:%s\n",mat2str(size(ampl_coeff)))
+
 end

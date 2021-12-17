@@ -25,24 +25,31 @@ def signals_model(omega_id:float, dist:np.ndarray, ampl_coeff:np.ndarray, delays
 # omega = omega_low + omega_id * omega_step;
 # hs = Multipath(omega, dist, ampl_coeff);
     omega = omega_low + omega_id * omega_step
-    hs = Multipath(omega, dist, ampl_coeff)
+    hs = Multipath(np.array([omega]), dist, ampl_coeff)
 # if isempty(delays)
 #     delays = 1;
 # end
 # if isempty(noises)
 #     noises = 0;
 # end
-    if (not delays.size):
+    if (not max(delays.shape)):
         delays = np.array([1])
-    if (not noises.size):
+    if (not max(noises.shape)):
         noises = np.array([1])
+    # print(f"    signals_model delays:{delays.shape}")
+    # print(f"    signals_model hs:{hs.shape}")
+
 
 # signals = delays .* abs(hs) .* exp(1i * 2 * angle(hs)) + noises;
-    signals = delays.dot(np.abs(hs)).dot(
+    signals = delays*(np.abs(hs))*(
         np.exp(1j * 2 * np.angle(hs))) + noises
+
 # signals = signals.';
 # r = signals*signals';
     signals = ctranspose(signals)
     r = signals * signals.transpose()
+    # print(f"    signals_model signals:{signals}")
+    # print(f"    signals_model r:{r}")
+
     return (r, signals)
 # end
