@@ -35,7 +35,7 @@ def signals_model(omega_id:float, dist:np.ndarray, ampl_coeff:np.ndarray, delays
     if (not max(delays.shape)):
         delays = np.array([1])
     if (not max(noises.shape)):
-        noises = np.array([1])
+        noises = np.array([0])
     # print(f"    signals_model delays:{delays.shape}")
     # print(f"    signals_model hs:{hs.shape}")
 
@@ -50,6 +50,5 @@ def signals_model(omega_id:float, dist:np.ndarray, ampl_coeff:np.ndarray, delays
     r = signals * signals.transpose()
     # print(f"    signals_model signals:{signals}")
     # print(f"    signals_model r:{r}")
-
     return (r, signals)
 # end
