@@ -29,6 +29,7 @@ def generate_point(start_point_m, cur_time, key_veloc_kmh, scenario_matrix, scen
     # dist(:, 3) = 2 * sqrt((d0/2).^2 + (ceil_height - y_height).^2);
     # dist(:, 4) = 2 * abs(car_pos - wall_pos_x) - d0;
     d0 = abs(car_pos - x_path)
+    #  TODO: Figure out why d0 not multiplied by 2 <21-12-21, astadnik> #
     dist = np.array([[
         d0,
         2 * ((d0/2)**2 + (y_height)**2)**.5,
@@ -41,8 +42,7 @@ def generate_point(start_point_m, cur_time, key_veloc_kmh, scenario_matrix, scen
     ampl_coeff = np.array(scenario_matrix)
 
     ampl_coeff = np.matlib.repmat(ampl_coeff , dist.shape[0], 1)
-    ampl_coeff = ampl_coeff + scenario_noise 
-    # * np.random.uniform(0, 1, ampl_coeff.shape)
+    ampl_coeff = ampl_coeff + scenario_noise * np.random.uniform(0, 1, ampl_coeff.shape)
     # print(f"    gen_p dist:{dist.shape}")
     # print(f"    gen_p ampl_coeff:{ampl_coeff.shape}")
 
