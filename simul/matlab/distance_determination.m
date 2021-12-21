@@ -134,3 +134,4 @@ ylabel('Real distance, m')
 a = -28.2446;
 b = 72.6000;
 view(a, b);
+pause;
