@@ -9,49 +9,34 @@ import numpy.matlib
 from Utilities import generate_point, signals_model
 
 
-def ctranspose(arr: np.ndarray) -> np.ndarray:
-    # Explanation of the math involved:
-    # x      == Real(X) + j*Imag(X)
-    # conj_x == Real(X) - j*Imag(X)
-    # conj_x == Real(X) + j*Imag(X) - 2j*Imag(X) == x - 2j*Imag(X)
-    tmp = arr.transpose()
-    return tmp - 2j * tmp.imag
-
-
 def main():
     np.random.seed(10)
     key_veloc_kmh = 5
-    # track = 10:-0.1:0.1
     start_point_m = 10
+
     # scenario_matrix = [0.1, 0, 0, 1]
-    scenario_matrix = [0.2, 0, 0, 0.6]  # LOS, floor, ceiling, wall
+    scenario_matrix = [0.2, 0.0, 0.0, 0.6]  # LOS, floor, ceiling, wall
     # scenario_matrix = [0.2, 0, 0, 0]
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
     scenario_noise = 0  # not used yet
 
     freq_numb = 40  # 2MHz step
 
-    # freq_list = 0:2:freq_numb*2
     freq_list = np.arange(0, freq_numb * 2, 2.0)
-    # print(freq_list)
     delta_t = 300e-6  # time to do one frequency IQ measurement
-
-    # onepack_times = delta_t * 0:7 # times of measurement 8 frequencies in a pack
-    onepack_times = np.array([delta_t * np.arange(0.0,8.0)]) # times of measurement 8 frequencies in a pack
     # times of measurement 8 frequencies in a pack
-    # print(onepack_times)
-    print(f"onepack_times:{onepack_times}")
-
-    # pack_times = 0:2.4e-3:7 # times of packs measurements staring
-    pack_times = np.array(
-        [np.arange(0, 7, 2.4e-3)]
-    )  # times of packs measurements staring
-    # print(pack_times)
-    print(f"pack_times:{pack_times.shape}")
+    onepack_times = delta_t * np.arange(0.0, 8.0)
+    pack_times = np.arange(0, 7, 2.4e-3)  # times of packs measurements staring
+    print(f"{pack_times.shape=}")
+    print(f"{onepack_times.shape=}")
     # time_flow = repmat(onepack_times, length(pack_times), 1) + repmat(pack_times', 1, length(onepack_times));
-    time_flow = np.matlib.repmat(
-        onepack_times, max(pack_times.shape), 1
-    ) + np.matlib.repmat(pack_times.transpose(), 1, max(onepack_times.shape))
+    # print(ctranspose(pack_times) == pack_times.conj().T)
+
+    time_flow = np.tile(onepack_times, (len(pack_times), 1)) + np.tile(
+        pack_times.conj().T[:, None], (1, len(onepack_times))
+    )
+    print(time_flow.shape)
+    print(f"time_flow:{time_flow.shape}{time_flow[0,:]}")
     print(f"time_flow:{time_flow.shape}{time_flow[0,:]}")
 
     # time_flow = time_flow';
@@ -148,16 +133,16 @@ def main():
     # px.scatter(amplitudes).show()
     # px.scatter(angles).show()
 
-    # data = [
-    #     freq_meas_coll[i, ~np.isnan(freq_meas_coll[i, :])]
-    #     for i in range(freq_meas_coll.shape[0])
-    # ]
-    # amplitudes = [np.abs(d).tolist() for d in data]
-    # angles = [np.angle(d).tolist() for d in data]
-    # amplitudes = map(list, zip(*amplitudes[::10]))
-    # angles = map(list, zip(*angles[::10]))
-    # px.line(amplitudes).show()
-    # px.line(angles).show()
+    data = [
+        freq_meas_coll[i, ~np.isnan(freq_meas_coll[i, :])]
+        for i in range(freq_meas_coll.shape[0])
+    ]
+    amplitudes = [np.abs(d).tolist() for d in data]
+    angles = [np.angle(d).tolist() for d in data]
+    amplitudes = map(list, zip(*amplitudes[::10]))
+    angles = map(list, zip(*angles[::10]))
+    px.line(amplitudes).show()
+    px.line(angles).show()
 
     # print("\n".join([str(row) for row in freq_meas_coll]))
     # print(f"freq_meas_coll:{freq_meas_coll}")
