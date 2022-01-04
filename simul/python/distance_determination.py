@@ -6,7 +6,7 @@ from tqdm.auto import trange
 pio.renderers.default = "browser"
 import numpy.matlib
 
-from Utilities import generate_point, signals_model
+from Utilities import *
 
 
 def ctranspose(arr: np.ndarray) -> np.ndarray:
@@ -24,8 +24,8 @@ def main():
     # track = 10:-0.1:0.1
     start_point_m = 10
     # scenario_matrix = [0.1, 0, 0, 1]
-    scenario_matrix = [0.2, 0, 0, 0.6]  # LOS, floor, ceiling, wall
-    # scenario_matrix = [0.2, 0, 0, 0]
+    # scenario_matrix = [0.2, 0, 0, 0.6]  # LOS, floor, ceiling, wall
+    scenario_matrix = [0.2, 0, 0, 0]
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
     scenario_noise = 0  # not used yet
 
@@ -38,6 +38,7 @@ def main():
 
     # onepack_times = delta_t * 0:7 # times of measurement 8 frequencies in a pack
     onepack_times = np.array([delta_t * np.arange(0.0,8.0)]) # times of measurement 8 frequencies in a pack
+    # [0, dt, ...,dt*7]
     # times of measurement 8 frequencies in a pack
     # print(onepack_times)
     print(f"onepack_times:{onepack_times}")
@@ -100,7 +101,7 @@ def main():
     print(f"    freq_meas_set:{freq_meas_set}")
 
     for t_idx in trange(0, max(time_flow.shape)):
-        # for t_idx in range(0, 51):
+    # for t_idx in range(0, 500):
 
         # for t_idx in range(0,1):
 
@@ -142,32 +143,46 @@ def main():
         # print(f"        dist:{dist[t_idx, :]}\n    cur_freq:{curr_freq}, signals:{signals[0]}")
     # end
 
-    # data_1 = freq_meas_coll[1, ~np.isnan(freq_meas_coll[1, :])]
-    # amplitudes = np.abs(data_1)
-    # angles = np.angle(data_1)
-    # px.scatter(amplitudes).show()
-    # px.scatter(angles).show()
+    data_1 = freq_meas_coll[1, ~np.isnan(freq_meas_coll[1, :])]
+    amplitudes = np.abs(data_1)
+    xs = (key_veloc_kmh / 3600) * 1000 * time_flow[~np.isnan(freq_meas_coll[1, :])]
+    angles = np.angle(data_1)
+    px.scatter(y = amplitudes, x= xs).show()
+    px.scatter(y = angles, x= xs).show()
 
-    # data = [
-    #     freq_meas_coll[i, ~np.isnan(freq_meas_coll[i, :])]
-    #     for i in range(freq_meas_coll.shape[0])
-    # ]
-    # amplitudes = [np.abs(d).tolist() for d in data]
-    # angles = [np.angle(d).tolist() for d in data]
-    # amplitudes = map(list, zip(*amplitudes[::10]))
-    # angles = map(list, zip(*angles[::10]))
-    # px.line(amplitudes).show()
-    # px.line(angles).show()
+    # Interpolate NaNs
+    iq_data = np.array(freq_meas_coll, copy=True)
+    for freq_i in trange(iq_data.shape[0]):
+        last_val = 0+0j
+        for t_i in range(iq_data.shape[1]):
+            if(np.isnan(iq_data[freq_i, t_i])):
+                iq_data[freq_i, t_i] = last_val
+            else:
+                last_val = iq_data[freq_i, t_i]
+    # px.scatter(y = np.real(iq_data[1,:]), x= range(time_flow.shape[0])).show()
+    # px.scatter(y = np.imag(iq_data[1,:]), x= range(time_flow.shape[0])).show()
 
-    # print("\n".join([str(row) for row in freq_meas_coll]))
-    # print(f"freq_meas_coll:{freq_meas_coll}")
+    # Estimate distances
+    dists = np.arange(0, 20, 0.02)
+    plot_idxs = np.arange(0, max(time_flow.shape),  max(onepack_times.shape))
+    dist_probs = np.zeros((max(plot_idxs.shape), max(dists.shape)))
+    # for t_idx in trange(0, max(time_flow.shape)):
+    for t_idx in trange(0, max(plot_idxs.shape)):
+        iqs = np.array([iq_data[:, plot_idxs[t_idx]]])
+        corr_matrix = iqs*ctranspose(iqs)
+        # print(f"corr_matrix:{corr_matrix.shape}")
+        corr_matrix += 1e-10*np.identity(iq_data.shape[0])
+        # VerifyCorrMatrix(corr_matrix)
 
-    # print(f"signals:{signals}")
-    # print(f"ampl_coeff:{ampl_coeff}")
-    # print(f"dist[t_idx, :]:{dist[t_idx, :]}")
+        stear_vects = calc_stear_vect(freq_list, 2*dists)
+        dist_corrs = my_correlation_use(stear_vects, corr_matrix)
+        dist_probs[t_idx, :] = (dist_corrs - dist_corrs.min())/(dist_corrs.max() - dist_corrs.min())
+    px.imshow(dist_probs, aspect='auto').show()
+    # px.
+    # print(dist_probs)
+    #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
 
-    ## Estimate distances
-    # iq_vect = NaN(freq_numb, 1);
+
     # for t_idx = 1:length(onepack_times):length(time_flow)
     #     disp(100 * t_idx / length(time_flow))
 
@@ -184,38 +199,15 @@ def main():
     #     r = r_t + r_noise; # required only in noiseless cases to make shure the corellation matrix is posively defined
     #     VerifyCorrMatrix(r); # verify if the correlation r matrix is OK
 
-    #     if sm_order > 1
-    #         r_fin = spsmooth(r, sm_order);
-    #     else
-    #         r_fin = r;
-    #     end
-
     #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
 
     #     r_size = size(r_fin, 1);
     #     switch spectr_algo
-    #         case 1
-    #             [spec, spec_1] = my_correlation_use(sv(1:r_size, :), iq_vect, r_fin);
-    #         case 2
-    #             [eigenvects,eigenvals,~, ~] = MYmusicdoa_eigen_det(r_fin,nsig,'ScanAngles',80*sampl_dist/max(sampl_dist)); # 'ScanAngles' - just to skip verifications
-    #             [spec, spec_1] = MYmusicdoa_eigen_use(nsig, sv(1:r_size, :), eigenvects);
-    #         otherwise
-    #             disp('No such algorithm');
-    #             return
+    #     [spec, spec_1] = my_correlation_use(sv(1:r_size, :), iq_vect, r_fin);
     #     end
-
     #     spec_1_evol(floor((t_idx-1)/length(onepack_times) + 1), :) = (spec - min(spec)) / (max(spec) - min(spec));
     # end
 
-    # [X, Y] = meshgrid(sampl_dist, dist(1:length(onepack_times):end, 1));
-    # # spec_1_av_evol(spec_1_av_evol < 1e-5) = 1e-5;
-    # # spec_1_evol = log(spec_1_evol);
-    # figure, surf(X, Y, spec_1_evol(1:floor((t_idx-1)/length(onepack_times) + 1), :), 'LineStyle', 'none')
-    # xlabel('Estimated distance, m')
-    # ylabel('Real distance, m')
-    # a = -28.2446;
-    # b = 72.6000;
-    # view(a, b);
 
 
 main()
