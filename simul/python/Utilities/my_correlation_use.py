@@ -1,4 +1,5 @@
 import numpy as np
+
 # from icecream import ic
 
 # # function [spec, spec_1] = my_correlation_use(sv, signal, r)
@@ -30,24 +31,7 @@ def my_correlation_use(stear_vects, iqs) -> np.ndarray:
     #         stear_vects,
     #     )
     # )
+    # my = np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
+    # assert np.allclose(my, orig)
 
-    # my = []
-    # for i in range(stear_vects.shape[1]):
-    #     vects = stear_vects[:, i]
-    #     my.append(vects @ iqs @ vects.conj().T)
-    # my = np.abs(my).T
-
-    # my = np.abs(stear_vects.T @ iqs @ stear_vects.conj()).sum(0)
-    # ic(my, orig)
-    # # print(my)
-    # # print(orig)
-
-    # assert (my == orig).all()
-
-    return np.abs(
-        np.apply_along_axis(
-            lambda vects: vects @ iqs @ vects.conj().T,
-            0,
-            stear_vects,
-        )
-    )
+    return np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
