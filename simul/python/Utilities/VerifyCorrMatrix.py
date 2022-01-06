@@ -4,8 +4,8 @@ import numpy as np
 def VerifyCorrMatrix(r):
     try:
         np.linalg.cholesky(r)
-        print('Matrix is symmetric positive definite.')
-        print(np.linalg.eigvals(r))
+        # print('Matrix is symmetric positive definite.')
+        # print(np.linalg.eigvals(r))
 
     except np.linalg.LinAlgError as err:
         print('For a positive semi-definite matrix, the eigenvalues should be non-negative:')
