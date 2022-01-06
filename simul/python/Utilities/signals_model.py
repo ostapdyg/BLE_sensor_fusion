@@ -18,7 +18,7 @@ def signals_model(omega_id:float, dist:np.ndarray, ampl_coeff:np.ndarray, delays
     # freq_high = 2.480e9; #2.480 GHz
     # omega_low = 2.0 * np.pi * freq_low; # To radians
     # omega_step = 2.0 * np.pi * 1e6; # 1 MHz in radians
-    freq_high = 2.480e9  # 2.480 GHz
+    # freq_high = 2.480e9  # 2.480 GHz
     omega_low = 2.0 * np.pi * freq_low  # To radians
     omega_step = 2.0 * np.pi * 1e6  # 1 MHz in radians
 

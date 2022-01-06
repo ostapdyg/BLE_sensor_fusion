@@ -27,7 +27,7 @@ def calc_stear_vect(freq_ids, dists) -> np.ndarray:
     freq_0 = 2.402e9  # 2.402 GHz
 
     res = np.zeros([freq_ids.shape[0], dists.shape[0]])
-    omegas = 2.0*np.pi*np.arange(freq_0, freq_0+freq_ids.shape[0]*1e6, 1e6)
+    # omegas = 2.0*np.pi*np.arange(freq_0, freq_0+freq_ids.shape[0]*1e6, 1e6)
     for freq_idx in range(np.shape(freq_ids)[0]):
         omega = 2.0*np.pi*(freq_0 + freq_ids[freq_idx]*1e6)
         # IQ = e^(-i*omega*t) = e^(-i*omega*l/c)
