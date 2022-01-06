@@ -1,6 +1,7 @@
+from dataclasses import dataclass
+
 import numpy as np
 
-from dataclasses import dataclass
 
 def calc_measure_timestamps(delta_t):
     # times of measurement 8 frequencies in a pack
@@ -14,6 +15,7 @@ def calc_measure_timestamps(delta_t):
     measure_ts = np.tile(onepack_times, (row, 1)) + np.tile(pack_times, (1, col))
 
     return measure_ts.flatten()
+
 
 @dataclass
 class Parameters:

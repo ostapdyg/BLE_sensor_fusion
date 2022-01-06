@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 import plotly.express as px
-from icecream import ic
 from tqdm.auto import trange
 
 from Utilities.calc_stear_vect import calc_stear_vect
@@ -52,41 +51,30 @@ def simulate_signals(p: Parameters):
     return dist, freq_meas_coll
 
 
-def main():
-    np.random.seed(10)
-    params = Parameters()
-
-    ###############################
-    # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));
-    # spec_1_evol = np.zeros((len(measure_timestamps), len(sampl_dist)))
-    # freq_meas_coll = NaN(freq_numb, length(measure_timestamps));
-    dist, freq_meas_coll = simulate_signals(params)
-
-    # data_1 = freq_meas_coll[1, ~np.isnan(freq_meas_coll[1, :])]
-    # amplitudes = np.abs(data_1)
-    # xs = (key_veloc_kmh / 3600) * 1000 * measure_timestamps[~np.isnan(freq_meas_coll[1, :])]
-    # angles = np.angle(data_1)
-    # px.scatter(y = amplitudes, x= xs).show()
-    # px.scatter(y = angles, x= xs).show()
-
+def interpolate_NAN(freq_meas_coll):
     # Interpolate NaNs
-    iq_data = np.array(freq_meas_coll, copy=True)
-    for freq_i in trange(iq_data.shape[0]):
+    # I wonder if there is a better way
+    iq_data = freq_meas_coll.copy()
+    for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
         last_val = 0 + 0j
         for t_i in range(iq_data.shape[1]):
             if np.isnan(iq_data[freq_i, t_i]):
                 iq_data[freq_i, t_i] = last_val
             else:
                 last_val = iq_data[freq_i, t_i]
-    # px.scatter(y = np.real(iq_data[1,:]), x= range(measure_timestamps.shape[0])).show()
-    # px.scatter(y = np.imag(iq_data[1,:]), x= range(measure_timestamps.shape[0])).show()
+    return iq_data
+
+def estimate_dist(freq_meas_coll, params):
+    iq_data = interpolate_NAN(freq_meas_coll)
 
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
-    plot_idxs = np.arange(0, max(params.measure_timestamps.shape), 8)
+    plot_idxs = np.arange(0, len(params.measure_timestamps), 8)
     dist_probs = np.zeros((max(plot_idxs.shape), max(dists.shape)))
     # for t_idx in trange(0, max(measure_timestamps.shape)):
-    for t_idx in trange(0, max(plot_idxs.shape)):
+    for t_idx in trange(
+        0, max(plot_idxs.shape), desc="Searching for distances", leave=False
+    ):
         iqs = np.array([iq_data[:, plot_idxs[t_idx]]])
         corr_matrix = iqs * iqs.conj().T
         # print(f"corr_matrix:{corr_matrix.shape}")
@@ -98,10 +86,24 @@ def main():
         dist_probs[t_idx, :] = (dist_corrs - dist_corrs.min()) / (
             dist_corrs.max() - dist_corrs.min()
         )
+    return dist_probs
+
+
+def main():
+    np.random.seed(10)
+    params = Parameters()
+
+    dist, freq_meas_coll = simulate_signals(params)
+
+    dist_probs = estimate_dist(freq_meas_coll, params)
+
     #  TODO: Plot the ground truth(dist) as well <06-01-22, astadnik> #
     px.imshow(dist_probs, aspect="auto").show()
-    # px.
-    # print(dist_probs)
+
+    ###############################
+    # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));
+    # spec_1_evol = np.zeros((len(measure_timestamps), len(sampl_dist)))
+    # freq_meas_coll = NaN(freq_numb, length(measure_timestamps));
     #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
 
     # for t_idx = 1:length(onepack_times):length(measure_timestamps)

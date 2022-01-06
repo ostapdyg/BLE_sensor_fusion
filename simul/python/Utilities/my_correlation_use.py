@@ -1,4 +1,5 @@
 import numpy as np
+# from icecream import ic
 
 # # function [spec, spec_1] = my_correlation_use(sv, signal, r)
 # def my_correlation_use(sv, signal, r)->tuple[np.array, np.array]:
@@ -22,11 +23,31 @@ def my_correlation_use(stear_vects, iqs) -> np.ndarray:
         stear_vects (np.array([num_freqs, num_dists])): ideal normalized IQ values for fixed distances
         iqs (np.array([num_freqs, num_freqs])): IQs * ctranspose(IQs)
     """
-    #  TODO: WTF :) <06-01-22, astadnik> #
-    return np.apply_along_axis(
-        lambda vects: np.abs(
-            np.array([vects]).dot(iqs).dot(np.array([vects]).conj().T)
-        ),
-        0,
-        stear_vects,
+    # orig = np.abs(
+    #     np.apply_along_axis(
+    #         lambda vects: vects @ iqs @ vects.conj().T,
+    #         0,
+    #         stear_vects,
+    #     )
+    # )
+
+    # my = []
+    # for i in range(stear_vects.shape[1]):
+    #     vects = stear_vects[:, i]
+    #     my.append(vects @ iqs @ vects.conj().T)
+    # my = np.abs(my).T
+
+    # my = np.abs(stear_vects.T @ iqs @ stear_vects.conj()).sum(0)
+    # ic(my, orig)
+    # # print(my)
+    # # print(orig)
+
+    # assert (my == orig).all()
+
+    return np.abs(
+        np.apply_along_axis(
+            lambda vects: vects @ iqs @ vects.conj().T,
+            0,
+            stear_vects,
+        )
     )
