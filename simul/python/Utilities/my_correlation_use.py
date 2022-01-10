@@ -24,6 +24,7 @@ def my_correlation_use(stear_vects, iqs) -> np.ndarray:
         stear_vects (np.array([num_freqs, num_dists])): ideal normalized IQ values for fixed distances
         iqs (np.array([num_freqs, num_freqs])): IQs * ctranspose(IQs)
     """
+    #  TODO: Ask guys to explain (or at least name it) <10-01-22, astadnik> #
     # orig = np.abs(
     #     np.apply_along_axis(
     #         lambda vects: vects @ iqs @ vects.conj().T,

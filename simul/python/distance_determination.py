@@ -53,7 +53,8 @@ def simulate_signals(p: Parameters):
 
 def interpolate_NAN(freq_meas_coll):
     # Interpolate NaNs
-    # I wonder if there is a better way
+    #  TODO: I wonder if there is a better way <10-01-22, astadnik> #
+    #  TODO: Find a better way to interpolate NAN. Ask stakeholders <10-01-22, astadnik> #
     iq_data = freq_meas_coll.copy()
     for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
         last_val = 0 + 0j
@@ -62,30 +63,40 @@ def interpolate_NAN(freq_meas_coll):
                 iq_data[freq_i, t_i] = last_val
             else:
                 last_val = iq_data[freq_i, t_i]
+    # amplitudes = np.abs(iq_data[0, :])
+    # xs = range(iq_data.shape[1])
+    # angles = np.angle(iq_data[0, :])
+    # px.scatter(y = amplitudes, x= xs).show()
+    # px.scatter(y = angles, x= xs).show()
+    # exit()
     return iq_data
+
 
 def estimate_dist(freq_meas_coll, params):
     iq_data = interpolate_NAN(freq_meas_coll)
 
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
+    # Indexes of timestamps
     plot_idxs = np.arange(0, len(params.measure_timestamps), 8)
     dist_probs = np.zeros((max(plot_idxs.shape), max(dists.shape)))
     # for t_idx in trange(0, max(measure_timestamps.shape)):
+    stear_vects = calc_stear_vect(params.freq_list, 2 * dists)
     for t_idx in trange(
         0, max(plot_idxs.shape), desc="Searching for distances", leave=False
     ):
         iqs = np.array([iq_data[:, plot_idxs[t_idx]]])
         corr_matrix = iqs * iqs.conj().T
         # print(f"corr_matrix:{corr_matrix.shape}")
+        # ?
         corr_matrix += 1e-10 * np.identity(iq_data.shape[0])
         # VerifyCorrMatrix(corr_matrix)
 
-        stear_vects = calc_stear_vect(params.freq_list, 2 * dists)
         dist_corrs = my_correlation_use(stear_vects, corr_matrix)
         dist_probs[t_idx, :] = (dist_corrs - dist_corrs.min()) / (
             dist_corrs.max() - dist_corrs.min()
         )
+    #  TODO: Why there are small lines? <10-01-22, astadnik> #
     return dist_probs
 
 
@@ -98,7 +109,7 @@ def main():
     dist_probs = estimate_dist(freq_meas_coll, params)
 
     #  TODO: Plot the ground truth(dist) as well <06-01-22, astadnik> #
-    px.imshow(dist_probs, aspect="auto").show()
+    px.imshow(dist_probs[:, ::-1].T, aspect="auto").show()
 
     ###############################
     # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));
