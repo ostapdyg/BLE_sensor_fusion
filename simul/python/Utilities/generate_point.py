@@ -1,10 +1,8 @@
 import numpy as np
-from numba.core.decorators import njit
 
 from Utilities.parameters import Parameters
 
 
-@njit
 def generate_point(p: Parameters, ts) -> tuple[np.ndarray, np.ndarray]:
     key_shift_m = (p.vel / 3600) * 1000 * ts
     x_path = p.start_pos - key_shift_m

@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 import plotly.express as px
-from numba import njit
 from tqdm.auto import tqdm, trange
 
 from Utilities.calc_stear_vect import calc_stear_vect
@@ -14,7 +13,6 @@ from Utilities.signals_model import signals_model
 logger = logging.getLogger(__name__)
 
 
-@njit
 def get_current_freq(ts_i, p: Parameters):
     """
     big steps by 10, small steps by 2
@@ -28,7 +26,6 @@ def get_current_freq(ts_i, p: Parameters):
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
-@njit
 def simulate_signals(p: Parameters):
     signals_data = np.full((p.freqs.size, len(p.tss)), np.NaN, dtype=np.csingle)
 
@@ -45,7 +42,6 @@ def simulate_signals(p: Parameters):
     return dist, signals_data
 
 
-@njit
 def interpolate_NAN(signals_data):
     # Interpolate NaNs
     #  TODO: I wonder if there is a better way <10-01-22, astadnik> #
@@ -67,7 +63,6 @@ def interpolate_NAN(signals_data):
     return iq_data
 
 
-@njit
 def estimate_dist(signals_data, params: Parameters):
     iq_data = interpolate_NAN(signals_data)
 

@@ -13,11 +13,9 @@
 # G = exp(-1i * tQ .* tomega / c);
 
 # end
-from numba import njit
 import numpy as np
 
 
-@njit
 def calc_stear_vect(freq_ids, dists) -> np.ndarray:
     """calculate ideal iqs
 

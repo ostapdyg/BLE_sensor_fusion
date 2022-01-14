@@ -1,11 +1,9 @@
 import numpy as np
-from numba import njit
 
 from Utilities.Multipath import Multipath
 from Utilities.parameters import Parameters
 
 
-@njit
 def signals_model(
     omega_id: float, dist: np.ndarray, ampl_coeff: np.ndarray, p: Parameters
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -15,8 +13,8 @@ def signals_model(
 
     omega = omega_low + omega_id * omega_step
     hs = Multipath(omega, dist, ampl_coeff)
-    delays = np.array([1.0]) if p.delays.size == 0 else p.delays
-    noises = np.array([0.0]) if p.noises.size == 0 else p.noises
+    delays = np.array([1.]) if p.delays.size == 0 else p.delays
+    noises = np.array([0.]) if p.noises.size == 0 else p.noises
 
     signals = delays * (np.abs(hs)) * (np.exp(1j * 2 * np.angle(hs))) + noises
 

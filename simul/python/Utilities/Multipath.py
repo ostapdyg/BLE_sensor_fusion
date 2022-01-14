@@ -1,7 +1,5 @@
 import numpy as np
-from numba import njit
 
-@njit
 def Multipath(omega: float, dist: np.ndarray, ampl_coeff: np.ndarray) -> float:
     c = 299792458
     multipaths = np.zeros((1, max(dist.shape)), np.csingle)

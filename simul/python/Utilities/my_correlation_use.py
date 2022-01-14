@@ -1,4 +1,3 @@
-from numba import njit
 import numpy as np
 
 # from icecream import ic
@@ -17,7 +16,6 @@ import numpy as np
 # # spec_1 = spec;
 #     return (spec, spec.copy())
 
-@njit
 def my_correlation_use(stear_vects, iqs) -> np.ndarray:
     """estimate distances using correlation
 
