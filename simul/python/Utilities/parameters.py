@@ -6,9 +6,8 @@ import numpy as np
 def calc_measure_timestamps(delta_t):
     # times of measurement 8 frequencies in a pack
     onepack_times = delta_t * np.arange(0.0, 8.0)
-    pack_times = np.arange(0, 7, 2.4e-3).T[
-        :, np.newaxis
-    ]  # times of packs measurements staring
+    # times of packs measurements staring
+    pack_times = np.arange(0, 7, 2.4e-3).T[:, np.newaxis]
     row, col = len(pack_times), len(onepack_times)
 
     # pack_times.conj() == pack_times
@@ -19,8 +18,8 @@ def calc_measure_timestamps(delta_t):
 
 @dataclass
 class Parameters:
-    key_veloc_kmh = 5
-    start_point_m = 10
+    vel = 5
+    start_pos = 10
 
     # scenario_matrix = [0.1, 0, 0, 1]
     scenario_matrix = [0.2, 0.0, 0.0, 0.6]  # LOS, floor, ceiling, wall
@@ -28,9 +27,9 @@ class Parameters:
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
     scenario_noise = 0  # not used yet
 
-    freq_numb = 40  # 2MHz step
+    n_freq = 40  # 2MHz step
 
-    freq_list = np.arange(0, freq_numb * 2, 2.0)
+    freqs = np.arange(0, n_freq * 2, 2.0)
 
     # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
 
@@ -47,4 +46,4 @@ class Parameters:
     noises = np.array([])
 
     delta_t = 300e-6  # time to do one frequency IQ measurement
-    measure_timestamps = calc_measure_timestamps(delta_t)
+    tss = calc_measure_timestamps(delta_t)
