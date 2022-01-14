@@ -1,13 +1,6 @@
 import numpy as np
 
-
-def ctranspose(arr: np.ndarray) -> np.ndarray:
-    # Explanation of the math involved:
-    # x      == Real(X) + j*Imag(X)
-    # conj_x == Real(X) - j*Imag(X)
-    # conj_x == Real(X) + j*Imag(X) - 2j*Imag(X) == x - 2j*Imag(X)
-    tmp = arr.transpose()
-    return tmp - 2j*tmp.imag
+# from icecream import ic
 
 # # function [spec, spec_1] = my_correlation_use(sv, signal, r)
 # def my_correlation_use(sv, signal, r)->tuple[np.array, np.array]:
@@ -31,25 +24,15 @@ def my_correlation_use(stear_vects, iqs) -> np.ndarray:
         stear_vects (np.array([num_freqs, num_dists])): ideal normalized IQ values for fixed distances
         iqs (np.array([num_freqs, num_freqs])): IQs * ctranspose(IQs)
     """
-    res = np.zeros(np.shape(stear_vects)[1])
-    # for dist_idx in range(np.size(res)):
-    #     corr = np.abs(
-    #         np.array([stear_vects[:, dist_idx]]).dot(
-    #             iqs).dot(
-    #             ctranspose(np.array([stear_vects[:, dist_idx]])))
+    #  TODO: Ask guys to explain (or at least name it) <10-01-22, astadnik> #
+    # orig = np.abs(
+    #     np.apply_along_axis(
+    #         lambda vects: vects @ iqs @ vects.conj().T,
+    #         0,
+    #         stear_vects,
     #     )
-    #     # print(f"   my_correlation_use iqs:{iqs.shape}")
-    #     # print(f"   my_correlation_use corr:{corr.shape}")
-    #     res[dist_idx] = corr
-    # return res
-    return np.apply_along_axis(lambda vects: np.abs(
-            np.array([vects]).dot(
-                iqs).dot(
-                ctranspose(np.array([vects])))),
-                0, stear_vects)
-# 
+    # )
+    # my = np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
+    # assert np.allclose(my, orig)
 
-if(__name__ == "__main__"):
-    pass
-    # A = np.array([[1,-2j],[2j,5]])
-    # print(my_correlation_use(A, 10, 10))
+    return np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
