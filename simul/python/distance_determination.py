@@ -2,17 +2,19 @@ import logging
 
 import numpy as np
 import plotly.express as px
+from numba import njit
 from tqdm.auto import tqdm, trange
 
 from Utilities.calc_stear_vect import calc_stear_vect
 from Utilities.generate_point import generate_point
 from Utilities.my_correlation_use import my_correlation_use
-from Utilities.parameters import Parameters
+from Utilities.parameters import Parameters, params
 from Utilities.signals_model import signals_model
 
 logger = logging.getLogger(__name__)
 
 
+@njit
 def get_current_freq(ts_i, p: Parameters):
     """
     big steps by 10, small steps by 2
@@ -26,31 +28,30 @@ def get_current_freq(ts_i, p: Parameters):
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
+@njit
 def simulate_signals(p: Parameters):
-    signals_data = np.full((p.n_freq, len(p.tss)), np.NaN, dtype=np.csingle)
+    signals_data = np.full((p.freqs.size, len(p.tss)), np.NaN, dtype=np.csingle)
 
     # Distance LOS, floor, ceiling, wall
     dist = np.zeros((len(p.tss), 4))
 
-    desc = "Simulating distances and signals"
-    for ts_i, ts in enumerate(tqdm(p.tss, desc=desc, leave=False)):
+    for ts_i, ts in enumerate(p.tss):
         curr_freq = get_current_freq(ts_i, p)
 
         dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-        _, signals = signals_model(
-            curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p.delays, p.noises
-        )
+        _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
         signals_data[:, ts_i] = np.NaN
         signals_data[round(curr_freq / 2), ts_i] = signals[0]
     return dist, signals_data
 
 
+@njit
 def interpolate_NAN(signals_data):
     # Interpolate NaNs
     #  TODO: I wonder if there is a better way <10-01-22, astadnik> #
     #  TODO: Find a better way to interpolate NAN. Ask stakeholders <10-01-22, astadnik> #
     iq_data = signals_data.copy()
-    for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
+    for freq_i in range(iq_data.shape[0]):
         last_val = 0 + 0j
         for t_i in range(iq_data.shape[1]):
             if np.isnan(iq_data[freq_i, t_i]):
@@ -66,6 +67,7 @@ def interpolate_NAN(signals_data):
     return iq_data
 
 
+@njit
 def estimate_dist(signals_data, params: Parameters):
     iq_data = interpolate_NAN(signals_data)
 
@@ -76,10 +78,12 @@ def estimate_dist(signals_data, params: Parameters):
     dist_probs = np.zeros((max(plot_idxs.shape), max(dists.shape)))
     # for t_idx in trange(0, max(measure_timestamps.shape)):
     stear_vects = calc_stear_vect(params.freqs, 2 * dists)
-    for t_idx in trange(
-        0, max(plot_idxs.shape), desc="Searching for distances", leave=False
-    ):
-        iqs = np.array([iq_data[:, plot_idxs[t_idx]]])
+    for t_idx in range(plot_idxs.shape[0]):
+        # print(plot_idxs[t_idx])
+        # print(iq_data[:, plot_idxs[t_idx]])
+        # print(np.array(iq_data[:, plot_idxs[t_idx]]))
+        # print(np.expand_dims(np.array(iq_data[:, plot_idxs[t_idx]]), axis=0))
+        iqs = np.expand_dims(iq_data[:, plot_idxs[t_idx]], axis=0)
         corr_matrix = iqs * iqs.conj().T
         # print(f"corr_matrix:{corr_matrix.shape}")
         # ?
@@ -96,14 +100,24 @@ def estimate_dist(signals_data, params: Parameters):
 
 def main():
     np.random.seed(10)
-    params = Parameters()
 
+    print('simulate_signals')
     dist, signals_data = simulate_signals(params)
 
+    print('estimate_dist')
     dist_probs = estimate_dist(signals_data, params)
 
+    print('test')
+    # with open("dist_probs.npy", "wb") as f:
+    #     dist_probs_ = np.save(f, dist_probs)
+
+    with open("dist_probs.npy", "rb") as f:
+        dist_probs_ = np.load(f)
+
+    np.testing.assert_equal(dist_probs, dist_probs_)
+
     #  TODO: Plot the ground truth(dist) as well <06-01-22, astadnik> #
-    px.imshow(dist_probs[:, ::-1].T, aspect="auto").show()
+    # px.imshow(dist_probs[:, ::-1].T, aspect="auto").show()
 
     ###############################
     # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));

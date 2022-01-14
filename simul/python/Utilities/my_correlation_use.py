@@ -1,3 +1,4 @@
+from numba import njit
 import numpy as np
 
 # from icecream import ic
@@ -16,7 +17,7 @@ import numpy as np
 # # spec_1 = spec;
 #     return (spec, spec.copy())
 
-
+@njit
 def my_correlation_use(stear_vects, iqs) -> np.ndarray:
     """estimate distances using correlation
 
@@ -35,4 +36,4 @@ def my_correlation_use(stear_vects, iqs) -> np.ndarray:
     # my = np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
     # assert np.allclose(my, orig)
 
-    return np.abs(((stear_vects.T @ iqs) * stear_vects.conj().T).sum(1))
+    return np.abs(((stear_vects.T.astype(np.complex128) @ iqs.astype(np.complex128)) * stear_vects.conj().T).sum(1))

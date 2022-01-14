@@ -1,13 +1,11 @@
 import numpy as np
-import numpy.matlib
+from numba.core.decorators import njit
 
 from Utilities.parameters import Parameters
 
 
-# @njit
-def generate_point(
-    p:Parameters, ts
-) -> tuple[np.ndarray, np.ndarray]:
+@njit
+def generate_point(p: Parameters, ts) -> tuple[np.ndarray, np.ndarray]:
     key_shift_m = (p.vel / 3600) * 1000 * ts
     x_path = p.start_pos - key_shift_m
     # sensor and car height
@@ -24,23 +22,23 @@ def generate_point(
     car_pos = 0
     d0 = abs(car_pos - x_path)
     #  TODO: Figure out why d0 not multiplied by 2 <21-12-21, astadnik> #
-    dist = np.array(
-        [
-            [
-                d0,
-                2 * ((d0 / 2) ** 2 + (y_height) ** 2) ** 0.5,
-                2 * ((d0 / 2) ** 2 + (ceil_height - y_height) ** 2) ** 0.5,
-                2 * abs(car_pos - wall_pos_x) - d0,
-            ]
-        ]
-    )
+    dist = [
+        d0,
+        2 * ((d0 / 2) ** 2 + (y_height) ** 2) ** 0.5,
+        2 * ((d0 / 2) ** 2 + (ceil_height - y_height) ** 2) ** 0.5,
+        2 * abs(car_pos - wall_pos_x) - d0,
+    ]
+    dist = np.expand_dims(np.array(dist), axis=0)
     # ampl_coeff = scenario_matrix;
     # ampl_coeff = repmat(ampl_coeff , size(dist, 1), 1);
     # ampl_coeff = ampl_coeff + scenario_noise * rand(size(ampl_coeff));
     ampl_coeff = np.array(p.scenario_matrix)
 
-    # ampl_coeff = np.expand_dims(np.array(scenario_matrix).repeat(dist.shape[0]), axis=1)
-    ampl_coeff = np.matlib.repmat(ampl_coeff, dist.shape[0], 1)
-    ampl_coeff = ampl_coeff + p.scenario_noise * np.random.uniform(0, 1, ampl_coeff.shape)
+    ampl_coeff = np.expand_dims(
+        np.array(p.scenario_matrix).repeat(dist.shape[0]), axis=0
+    )
+    ampl_coeff = ampl_coeff + p.scenario_noise * np.random.uniform(
+        0, 1, ampl_coeff.shape
+    )
 
     return (dist, ampl_coeff)

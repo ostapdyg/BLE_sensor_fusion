@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from collections import namedtuple
 
 import numpy as np
 
@@ -16,38 +16,34 @@ def calc_measure_timestamps(delta_t):
     return measure_ts.flatten()
 
 
-@dataclass
-class Parameters:
-    # km/h
-    vel = 5
-    # m
-    start_pos = 10
+DELTA_T = 300e-6  # time to do one frequency IQ measurement
+N_FREQ = 40  # 2MHz step
 
+params = {
+    "vel": 5,  # km/h
+    "start_pos": 10,  # m
     # LOS, floor, ceiling, wall
-    # scenario_matrix = [0.1, 0, 0, 1]
-    scenario_matrix = [0.2, 0.0, 0.0, 0.6]
-    # scenario_matrix = [0.2, 0, 0, 0]
-    # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
-    scenario_noise = 0  # not used yet
-
-    n_freq = 40  # 2MHz step
-
-    freqs = np.arange(0, n_freq * 2, 2.0)
-
-    # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
-
+    # scenario_matrix : [0.1, 0, 0, 1]
+    "scenario_matrix": [0.2, 0.0, 0.0, 0.6],
+    # scenario_matrix : [0.2, 0, 0, 0]
+    # scenario_matrix : [0.2, 0.3, 0.4, 0.6]
+    "scenario_noise": 0,  # not used yet
+    "n_freq":40,
+    "freqs": np.arange(0, N_FREQ * 2, 2.0),
+    # spectr_algo : 1; # 1 - FFT, 2 - MUSIC
     # 1 - regular frequency step, 0 - random frequency
-    freq_set_type = 1
-
+    "freq_set_type": 1,
     # for regular frequency step
-    f_pack_len = 5
+    "f_pack_len": 5,
     # for regular frequency step
-    freq_meas_set = np.arange(0, 80, 10)
-
+    "freq_meas_set": np.arange(0, 80, 10),
     ## Define noise and delay errors
     # In this case default numbers will be used
-    delays = np.array([])
-    noises = np.array([])
+    "delays": np.array([]),
+    "noises": np.array([]),
+    "tss": calc_measure_timestamps(DELTA_T),
+}
 
-    delta_t = 300e-6  # time to do one frequency IQ measurement
-    tss = calc_measure_timestamps(delta_t)
+Parameters = namedtuple("Parameters", params)
+
+params = Parameters(**params)
