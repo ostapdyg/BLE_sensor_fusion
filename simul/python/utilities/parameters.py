@@ -33,8 +33,8 @@ class Parameters:
 
     # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
 
-    freq_set_type = 1
-    # 1 - regular frequency step, 0 - random frequency
+    freq_set_type = 2
+    # 1 - regular frequency step, 0 - random frequency, 2 - all simultaneously
     f_pack_len = 5
     # for regular frequency step
     freq_meas_set = np.arange(0, 80, 10)

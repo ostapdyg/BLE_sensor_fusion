@@ -1,6 +1,6 @@
 import numpy as np
 
-from Utilities.parameters import Parameters
+from utilities.parameters import Parameters
 
 
 def generate_point(p: Parameters, ts) -> tuple[np.ndarray, np.ndarray]:
