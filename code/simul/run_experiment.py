@@ -10,14 +10,19 @@ np.random.seed(10)
 def experiment1():
     params = Parameters()
     params.freq_set_type = 1
-    return params
+    return "default", params
+
+def experiment2():
+    params = Parameters()
+    params.freq_set_type = 2
+    return "default_full", params
 
 
 def main():
-    params = experiment1()
+    exp_name, params = experiment2()
     dist, signals_data = simulate_signals(params)
     dist_probs = estimate_dist(signals_data, params)
-    dump_experiment("default", params, dist, signals_data, dist_probs)
+    dump_experiment(exp_name, params, dist, signals_data, dist_probs)
 
 
 if __name__ == "__main__":
