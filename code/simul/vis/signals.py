@@ -2,7 +2,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 
-pio.renderers.default = "browser"
+pio.renderers.default = "browser" # type: ignore
 import numpy as np
 
 

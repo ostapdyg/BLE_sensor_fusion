@@ -1,20 +1,21 @@
 import logging
+import os
 
-import plotly.express as px
-import plotly.io as pio
-
-pio.renderers.default = "browser"
 import numpy as np
 import plotly.express as px
+import plotly.io as pio
 from tqdm.auto import tqdm, trange
 
-from utilities.calc_stear_vect import calc_stear_vect
-from utilities.generate_point import generate_point
-from utilities.my_correlation_use import my_correlation_use
-from utilities.parameters import Parameters
-from utilities.signals_model import signals_model
+from distances.calc_stear_vect import calc_stear_vect
+from distances.my_correlation_use import my_correlation_use
+from parameters import Parameters
+from signals.generate_point import generate_point
+from signals.signals_model import signals_model
+from utilities.data import dump_experiment
 from vis.dist_probs import vis_dist_probs
 from vis.signals import vis_signals
+
+pio.renderers.default = "browser"
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,6 @@ def get_current_freq(ts_i, p: Parameters):
     if p.freq_set_type == 1:
         f2_i = np.floor(ts_i / 8) % p.f_pack_len
         return (ts_i % 8) * 10 + f2_i * 2
-    #     f2_i = np.floor(ts_i / 8) % p.f_pack_len
-    #     return (ts_i % 8) * 10 + f2_i * 2
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
@@ -73,12 +72,6 @@ def interpolate_NAN(signals_data):
                 iq_data[freq_i, t_i] = last_val
             else:
                 last_val = iq_data[freq_i, t_i]
-    # amplitudes = np.abs(iq_data[0, :])
-    # xs = range(iq_data.shape[1])
-    # angles = np.angle(iq_data[0, :])
-    # px.scatter(y = amplitudes, x= xs).show()
-    # px.scatter(y = angles, x= xs).show()
-    # exit()
     return iq_data
 
 
@@ -113,44 +106,17 @@ def estimate_dist(signals_data, params: Parameters):
 def main():
     np.random.seed(10)
     params = Parameters()
+    params.freq_set_type = 1
 
     dist, signals_data = simulate_signals(params)
 
     dist_probs = estimate_dist(signals_data, params)
 
-    vis_signals(signals_data)
+    dump_experiment("matlab", params, dist, signals_data, dist_probs)
+
+    # vis_signals(signals_data)
     # vis_dist_probs(dist_probs)
 
-    ###############################
-    # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));
-    # spec_1_evol = np.zeros((len(measure_timestamps), len(sampl_dist)))
-    # freq_meas_coll = NaN(freq_numb, length(measure_timestamps));
-    #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
 
-    # for t_idx = 1:length(onepack_times):length(measure_timestamps)
-    #     disp(100 * t_idx / length(measure_timestamps))
-
-    #     for tm_idx = 0:length(onepack_times)-1
-    #         sign_idx = find(~isnan(freq_meas_coll(:, t_idx + tm_idx)));
-    #         iq_vect(sign_idx) = freq_meas_coll(sign_idx, t_idx + tm_idx);
-    #     end
-    #     if sum(isnan(iq_vect)) == 0
-    #         r_t = iq_vect * iq_vect';
-    #     else
-    #         continue;
-    #     end
-    #     r_noise = diag(1e-10 * ones(size(iq_vect)));
-    #     r = r_t + r_noise; # required only in noiseless cases to make shure the corellation matrix is posively defined
-    #     VerifyCorrMatrix(r); # verify if the correlation r matrix is OK
-
-    #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
-
-    #     r_size = size(r_fin, 1);
-    #     switch spectr_algo
-    #     [spec, spec_1] = my_correlation_use(sv(1:r_size, :), iq_vect, r_fin);
-    #     end
-    #     spec_1_evol(floor((t_idx-1)/length(onepack_times) + 1), :) = (spec - min(spec)) / (max(spec) - min(spec));
-    # end
-
-
-main()
+if __name__ == "__main__":
+    main()
