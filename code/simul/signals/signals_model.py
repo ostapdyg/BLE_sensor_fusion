@@ -1,7 +1,7 @@
 import numpy as np
 
-from signals.Multipath import Multipath
-from parameters import Parameters
+from simul.signals.Multipath import Multipath
+from simul.parameters import Parameters
 
 
 def signals_model(

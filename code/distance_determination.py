@@ -5,12 +5,12 @@ import numpy as np
 import plotly.io as pio
 from tqdm.auto import tqdm, trange
 
-from distances.calc_stear_vect import calc_stear_vect
-from distances.my_correlation_use import my_correlation_use
-from parameters import Parameters
-from signals.generate_point import generate_point
-from signals.signals_model import signals_model
-from utilities.data import dump_experiment
+from simul.distances.calc_stear_vect import calc_stear_vect
+from simul.distances.my_correlation_use import my_correlation_use
+from simul.parameters import Parameters
+from simul.signals.generate_point import generate_point
+from simul.signals.signals_model import signals_model
+from simul.utilities.data import dump_experiment
 # from vis.dist_probs import vis_dist_probs
 # from vis.signals import vis_signals
 

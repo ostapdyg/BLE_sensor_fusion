@@ -1,8 +1,8 @@
 import numpy as np
 
 from distance_determination import estimate_dist, simulate_signals
-from parameters import Parameters
-from utilities.data import dump_experiment
+from simul.parameters import Parameters
+from simul.utilities.data import dump_experiment
 
 np.random.seed(10)
 
@@ -11,6 +11,7 @@ def experiment1():
     params = Parameters()
     params.freq_set_type = 1
     return "default", params
+
 
 def experiment2():
     params = Parameters()

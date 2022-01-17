@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 from git.repo import Repo
-from parameters import Parameters
+from simul.parameters import Parameters
 
 
 def dump_experiment(

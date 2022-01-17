@@ -1,6 +1,6 @@
 import numpy as np
 
-from parameters import Parameters
+from simul.parameters import Parameters
 
 
 def generate_point(p: Parameters, ts) -> tuple[np.ndarray, np.ndarray]:
