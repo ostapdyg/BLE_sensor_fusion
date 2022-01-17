@@ -1,8 +1,7 @@
 import logging
-import os
 
 import numpy as np
-import plotly.express as px
+# import plotly.express as px
 import plotly.io as pio
 from tqdm.auto import tqdm, trange
 
@@ -12,10 +11,10 @@ from parameters import Parameters
 from signals.generate_point import generate_point
 from signals.signals_model import signals_model
 from utilities.data import dump_experiment
-from vis.dist_probs import vis_dist_probs
-from vis.signals import vis_signals
+# from vis.dist_probs import vis_dist_probs
+# from vis.signals import vis_signals
 
-pio.renderers.default = "browser"
+pio.renderers.default = "browser" # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,7 @@ def main():
 
     dist_probs = estimate_dist(signals_data, params)
 
-    dump_experiment("matlab", params, dist, signals_data, dist_probs)
+    dump_experiment("default", params, dist, signals_data, dist_probs)
 
     # vis_signals(signals_data)
     # vis_dist_probs(dist_probs)
