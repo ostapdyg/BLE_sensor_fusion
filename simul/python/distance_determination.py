@@ -23,6 +23,8 @@ def get_current_freq(ts_i, p: Parameters):
     if p.freq_set_type == 1:
         f2_i = np.floor(ts_i / 8) % p.f_pack_len
         return (ts_i % 8) * 10 + f2_i * 2
+    if p.freq_set_type == 2:
+        return np.arange(0, p.n_freq)*2
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
@@ -41,8 +43,26 @@ def simulate_signals(p: Parameters):
         dist[ts_i, :], ampl_coeff = generate_point(p, ts)
         _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
         signals_data[:, ts_i] = np.NaN
-        signals_data[round(curr_freq / 2), ts_i] = signals[0]
+        signals_data[curr_freq // 2, ts_i] = signals[0]
     return dist, signals_data
+
+# def simulate_signals_multifreq(p: Parameters):
+#     signals_data = np.full((p.freqs.size, len(p.tss)), np.NaN, dtype=np.csingle)
+
+#     # Distance LOS, floor, ceiling, wall
+#     dist = np.zeros((len(p.tss), 4))
+
+#     for ts_i, ts in enumerate(tqdm(p.tss,
+#         desc="Simulating distances and signals",
+#         leave=False,
+#         )):
+#         curr_freq = get_current_freq(ts_i, p)
+
+#         dist[ts_i, :], ampl_coeff = generate_point(p, ts)
+#         _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
+#         signals_data[:, ts_i] = np.NaN
+#         signals_data[round(curr_freq / 2), ts_i] = signals[0]
+#     return dist, signals_data
 
 
 def interpolate_NAN(signals_data):
@@ -68,7 +88,7 @@ def interpolate_NAN(signals_data):
 
 def estimate_dist(signals_data, params: Parameters):
     iq_data = interpolate_NAN(signals_data)
-
+    iq_data = signals_data
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
     # Indexes of timestamps
@@ -99,42 +119,15 @@ def main():
     params = Parameters()
 
     dist, signals_data = simulate_signals(params)
-
+    # print(signals_data.shape, signals_data[0,:])
     dist_probs = estimate_dist(signals_data, params)
 
     #  TODO: Plot the ground truth(dist) as well <06-01-22, astadnik> #
     # px.imshow(dist_probs[:, ::-1].T, aspect="auto").show()
+    px.imshow(dist_probs.T, aspect="auto", y = np.arange(0, 20, 0.02), x = dist[::8, 0]).show()
 
     ###############################
-    # spec_1_evol = zeros(length(measure_timestamps), length(sampl_dist));
-    # spec_1_evol = np.zeros((len(measure_timestamps), len(sampl_dist)))
-    # freq_meas_coll = NaN(freq_numb, length(measure_timestamps));
-    #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
 
-    # for t_idx = 1:length(onepack_times):length(measure_timestamps)
-    #     disp(100 * t_idx / length(measure_timestamps))
-
-    #     for tm_idx = 0:length(onepack_times)-1
-    #         sign_idx = find(~isnan(freq_meas_coll(:, t_idx + tm_idx)));
-    #         iq_vect(sign_idx) = freq_meas_coll(sign_idx, t_idx + tm_idx);
-    #     end
-    #     if sum(isnan(iq_vect)) == 0
-    #         r_t = iq_vect * iq_vect';
-    #     else
-    #         continue;
-    #     end
-    #     r_noise = diag(1e-10 * ones(size(iq_vect)));
-    #     r = r_t + r_noise; # required only in noiseless cases to make shure the corellation matrix is posively defined
-    #     VerifyCorrMatrix(r); # verify if the correlation r matrix is OK
-
-    #     sv = calc_stear_vect(freq_list, 2 * sampl_dist);
-
-    #     r_size = size(r_fin, 1);
-    #     switch spectr_algo
-    #     [spec, spec_1] = my_correlation_use(sv(1:r_size, :), iq_vect, r_fin);
-    #     end
-    #     spec_1_evol(floor((t_idx-1)/length(onepack_times) + 1), :) = (spec - min(spec)) / (max(spec) - min(spec));
-    # end
 
 
 main()
