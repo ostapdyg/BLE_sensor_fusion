@@ -7,8 +7,8 @@ from simul.parameters import Parameters
 
 
 def vis_signals(signals_data: np.ndarray, dist: np.ndarray, p: Parameters, n =
-    200, dump=False):
-    amp, angle = np.abs(signals_data[:, :n]), np.angle(signals_data[:, :n])
+    20, dump=False):
+    amp, angle = np.abs(signals_data[:10, :n]), np.angle(signals_data[:10, :n])
     y = p.freqs
     x = dist[:n, 0]
     fig_amp = go.Figure(data=[go.Surface(z=amp, x=x, y=y)]).update_layout(

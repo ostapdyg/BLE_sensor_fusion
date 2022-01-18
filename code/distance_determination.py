@@ -11,7 +11,7 @@ from simul.signals.generate_point import generate_point
 from simul.signals.signals_model import signals_model
 from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
-# from simul.vis.signals import vis_signals
+from simul.vis.signals import vis_signals
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ def get_current_freq(ts_i, p: Parameters):
     if p.freq_set_type == 1:
         f2_i = np.floor(ts_i / 8) % p.f_pack_len
         return (ts_i % 8) * 10 + f2_i * 2
+    if p.freq_set_type == 2:
+        return np.arange(0, p.n_freq)*2
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
@@ -35,25 +37,35 @@ def simulate_signals(p: Parameters):
     # Distance LOS, floor, ceiling, wall
     dist = np.zeros((len(p.tss), 4))
 
-    desc = "Simulating distances and signals"
-    for ts_i, ts in enumerate(tqdm(p.tss, desc=desc, leave=False)):
-        if p.freq_set_type == 2:
-            dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-            for curr_freq in range(0, 80, 2):
-                _, signals = signals_model(
-                    curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p
-                )
-                signals_data[round(curr_freq / 2), ts_i] = signals[0]
-            assert np.isnan(signals_data[:, ts_i]).sum() == 0
-        else:
-            curr_freq = get_current_freq(ts_i, p)
+    for ts_i, ts in enumerate(tqdm(p.tss,
+        desc="Simulating distances and signals",
+        leave=False,
+        )):
+        curr_freq = get_current_freq(ts_i, p)
 
-            dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-            _, signals = signals_model(
-                curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p
-            )
-            signals_data[round(curr_freq / 2), ts_i] = signals[0]
+        dist[ts_i, :], ampl_coeff = generate_point(p, ts)
+        _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
+        signals_data[:, ts_i] = np.NaN
+        signals_data[curr_freq // 2, ts_i] = signals[0]
     return dist, signals_data
+
+# def simulate_signals_multifreq(p: Parameters):
+#     signals_data = np.full((p.freqs.size, len(p.tss)), np.NaN, dtype=np.csingle)
+
+#     # Distance LOS, floor, ceiling, wall
+#     dist = np.zeros((len(p.tss), 4))
+
+#     for ts_i, ts in enumerate(tqdm(p.tss,
+#         desc="Simulating distances and signals",
+#         leave=False,
+#         )):
+#         curr_freq = get_current_freq(ts_i, p)
+
+#         dist[ts_i, :], ampl_coeff = generate_point(p, ts)
+#         _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
+#         signals_data[:, ts_i] = np.NaN
+#         signals_data[round(curr_freq / 2), ts_i] = signals[0]
+#     return dist, signals_data
 
 
 def interpolate_NAN(signals_data):
@@ -79,7 +91,7 @@ def interpolate_NAN(signals_data):
 
 def estimate_dist(signals_data, params: Parameters):
     iq_data = interpolate_NAN(signals_data)
-
+    iq_data = signals_data
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
     # Indexes of timestamps
@@ -111,13 +123,13 @@ def main():
     params.freq_set_type = 1
 
     dist, signals_data = simulate_signals(params)
-
+    # print(signals_data.shape, signals_data[0,:])
     dist_probs = estimate_dist(signals_data, params)
 
     # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    # vis_signals(signals_data)
-    vis_dist_probs(dist_probs)
+    vis_signals(signals_data)
+    # vis_dist_probs(dist_probs)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ def main():
     exp_name, params = experiments["default"]
     dist, signals_data = simulate_signals(params)
     dist_probs = estimate_dist(signals_data, params)
-    # dump_experiment(exp_name, params, dist, signals_data, dist_probs)
+    dump_experiment(exp_name, params, dist, signals_data, dist_probs)
 
 
 if __name__ == "__main__":
