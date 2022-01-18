@@ -1,6 +1,6 @@
 clear all
 
-addpath( genpath( [ pwd '/simul/matlab/Utilities' ] ) )
+addpath( genpath( [ pwd '/Utilities' ] ) )
 
 % rng(10)
 randn("seed",10)
@@ -134,4 +134,4 @@ ylabel('Real distance, m')
 a = -28.2446;
 b = 72.6000;
 view(a, b);
-pause;
+% pause;

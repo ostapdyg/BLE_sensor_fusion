@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -16,34 +16,36 @@ def calc_measure_timestamps(delta_t):
     return measure_ts.flatten()
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Parameters:
-    vel = 5
-    start_pos = 10
+    vel: int = 5
+    start_pos: int = 10
 
     # scenario_matrix = [0.1, 0, 0, 1]
-    scenario_matrix = [0.2, 0.0, 0.0, 0.6]  # LOS, floor, ceiling, wall
+    scenario_matrix: list[float] = field(
+        default_factory=lambda: [0.2, 0.0, 0.0, 0.6]
+    )  # LOS, floor, ceiling, wall
     # scenario_matrix = [0.2, 0, 0, 0]
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
-    scenario_noise = 0  # not used yet
+    scenario_noise: int = 0  # not used yet
 
-    n_freq = 40  # 2MHz step
+    n_freq: int = 40  # 2MHz step
 
-    freqs = np.arange(0, n_freq * 2, 2.0)
+    freqs: np.ndarray = field(default=np.arange(0, n_freq * 2, 2.0), repr=False)
 
     # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
 
-    freq_set_type = 2
+    freq_set_type: int = 2
     # 1 - regular frequency step, 0 - random frequency, 2 - all simultaneously
-    f_pack_len = 5
+    f_pack_len: int = 5
     # for regular frequency step
-    freq_meas_set = np.arange(0, 80, 10)
+    freq_meas_set: np.ndarray = np.arange(0, 80, 10)
     # for regular frequency step
 
     ## Define noise and delay errors
     # In this case default numbers will be used
-    delays = np.array([])
-    noises = np.array([])
+    delays: np.ndarray = np.array([])
+    noises: np.ndarray = np.array([])
 
-    delta_t = 300e-6  # time to do one frequency IQ measurement
-    tss = calc_measure_timestamps(delta_t)
+    delta_t: float = 300e-6  # time to do one frequency IQ measurement
+    tss: np.ndarray = field(default=calc_measure_timestamps(delta_t), repr=False)

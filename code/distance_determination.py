@@ -1,8 +1,7 @@
 import logging
 
 import numpy as np
-# import plotly.express as px
-import plotly.io as pio
+import plotly.express as px
 from tqdm.auto import tqdm, trange
 
 from simul.distances.calc_stear_vect import calc_stear_vect
@@ -11,10 +10,8 @@ from simul.parameters import Parameters
 from simul.signals.generate_point import generate_point
 from simul.signals.signals_model import signals_model
 from simul.utilities.data import dump_experiment
-# from vis.dist_probs import vis_dist_probs
-# from vis.signals import vis_signals
-
-pio.renderers.default = "browser" # type: ignore
+from simul.vis.dist_probs import vis_dist_probs
+# from simul.vis.signals import vis_signals
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +68,12 @@ def interpolate_NAN(signals_data):
                 iq_data[freq_i, t_i] = last_val
             else:
                 last_val = iq_data[freq_i, t_i]
+    # amplitudes = np.abs(iq_data[0, :])
+    # xs = range(iq_data.shape[1])
+    # angles = np.angle(iq_data[0, :])
+    # px.scatter(y = amplitudes, x= xs).show()
+    # px.scatter(y = angles, x= xs).show()
+    # exit()
     return iq_data
 
 
@@ -111,10 +114,10 @@ def main():
 
     dist_probs = estimate_dist(signals_data, params)
 
-    dump_experiment("default", params, dist, signals_data, dist_probs)
+    # dump_experiment("default", params, dist, signals_data, dist_probs)
 
     # vis_signals(signals_data)
-    # vis_dist_probs(dist_probs)
+    vis_dist_probs(dist_probs)
 
 
 if __name__ == "__main__":

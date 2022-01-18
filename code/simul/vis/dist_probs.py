@@ -1,7 +1,5 @@
 import plotly.express as px
-import plotly.io as pio
 
-pio.renderers.default = "browser" # type: ignore
 import numpy as np
 
 
