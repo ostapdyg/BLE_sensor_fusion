@@ -49,28 +49,8 @@ def simulate_signals(p: Parameters):
         signals_data[curr_freq // 2, ts_i] = signals[0]
     return dist, signals_data
 
-# def simulate_signals_multifreq(p: Parameters):
-#     signals_data = np.full((p.freqs.size, len(p.tss)), np.NaN, dtype=np.csingle)
-
-#     # Distance LOS, floor, ceiling, wall
-#     dist = np.zeros((len(p.tss), 4))
-
-#     for ts_i, ts in enumerate(tqdm(p.tss,
-#         desc="Simulating distances and signals",
-#         leave=False,
-#         )):
-#         curr_freq = get_current_freq(ts_i, p)
-
-#         dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-#         _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
-#         signals_data[:, ts_i] = np.NaN
-#         signals_data[round(curr_freq / 2), ts_i] = signals[0]
-#     return dist, signals_data
-
-
 def interpolate_NAN(signals_data):
     # Interpolate NaNs
-    #  TODO: I wonder if there is a better way <10-01-22, astadnik> #
     #  TODO: Find a better way to interpolate NAN. Ask stakeholders <10-01-22, astadnik> #
     iq_data = signals_data.copy()
     for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
@@ -120,16 +100,17 @@ def estimate_dist(signals_data, params: Parameters):
 def main():
     np.random.seed(10)
     params = Parameters()
-    params.freq_set_type = 1
-
+    params.freq_set_type = 2
     dist, signals_data = simulate_signals(params)
     # print(signals_data.shape, signals_data[0,:])
     dist_probs = estimate_dist(signals_data, params)
 
     # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    vis_signals(signals_data)
-    # vis_dist_probs(dist_probs)
+    # vis_signals(signals_data, dist, params, dump=False)
+    # px.imshow(dist_probs.T, aspect="auto", y = np.arange(0, 20, 0.02), x = dist[::8, 0]).show()
+
+    vis_dist_probs(dist_probs, dist, params)
 
 
 if __name__ == "__main__":
