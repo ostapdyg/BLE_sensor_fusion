@@ -11,7 +11,7 @@ from simul.signals.generate_point import generate_point
 from simul.signals.signals_model import signals_model
 from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
-# from simul.vis.signals import vis_signals
+from simul.vis.signals import vis_signals
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def estimate_dist(signals_data, params: Parameters):
 def main():
     np.random.seed(10)
     params = Parameters()
-    params.freq_set_type = 1
+    params.freq_set_type = 2
 
     dist, signals_data = simulate_signals(params)
 
@@ -116,8 +116,9 @@ def main():
 
     # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    # vis_signals(signals_data)
-    vis_dist_probs(dist_probs)
+    fig_amp, fig_angle = vis_signals(signals_data, dist, params, dump=True)
+    fig_amp.show()
+    # vis_dist_probs(dist_probs)
 
 
 if __name__ == "__main__":
