@@ -38,12 +38,14 @@ class Parameters:
     # scenario_matrix = [0.2, 0, 0, 0]
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
 
-    dist_funcs:list[function] = [
-        lambda x,t:abs(x),                      # LOS
-        lambda x,t:parallel_wall_dist(x, t, 1.0), # floor
-        lambda x,t:parallel_wall_dist(x, t, 4.0), # ceiling
-        lambda x,t:normal_wall_dist(x, t, 13.0),  # wall
-    ]
+    # TODO: make serializable?
+    dist_funcs:list[callable] = field(default_factory = lambda:(
+            lambda x,t:abs(x),                      # LOS
+            lambda x,t:parallel_wall_dist(x, t, 1.0), # floor
+            lambda x,t:parallel_wall_dist(x, t, 4.0), # ceiling
+            lambda x,t:normal_wall_dist(x, t, 13.0),  # wall
+        )
+    )
 
     scenario_noise = 0  # not used yet
 

@@ -84,10 +84,8 @@ def estimate_dist(signals_data, params: Parameters):
     ):
         iqs = np.expand_dims(iq_data[:, plot_idxs[t_idx]], axis=0)
         corr_matrix = iqs * iqs.conj().T
-        # print(f"corr_matrix:{corr_matrix.shape}")
-        # ?
+
         corr_matrix += 1e-10 * np.identity(iq_data.shape[0])
-        # VerifyCorrMatrix(corr_matrix)
 
         dist_corrs = my_correlation_use(stear_vects, corr_matrix)
         dist_probs[t_idx, :] = (dist_corrs - dist_corrs.min()) / (
@@ -102,12 +100,11 @@ def main():
     params = Parameters()
     params.freq_set_type = 2
     dist, signals_data = simulate_signals(params)
-    # print(signals_data.shape, signals_data[0,:])
     dist_probs = estimate_dist(signals_data, params)
 
     # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    # vis_signals(signals_data, dist, params, dump=False)
+    vis_signals(signals_data, dist, params, dump=False)
     # px.imshow(dist_probs.T, aspect="auto", y = np.arange(0, 20, 0.02), x = dist[::8, 0]).show()
 
     vis_dist_probs(dist_probs, dist, params)
