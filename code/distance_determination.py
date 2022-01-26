@@ -26,6 +26,8 @@ def get_current_freq(ts_i, p: Parameters):
     if p.freq_set_type == 1:
         f2_i = np.floor(ts_i / 8) % p.f_pack_len
         return (ts_i % 8) * 10 + f2_i * 2
+    if p.freq_set_type == 2:
+        return np.arange(0, p.n_freq) * 2
     return float(np.random.uniform(0, p.n_freq) - 1) * 2
 
 
@@ -37,28 +39,20 @@ def simulate_signals(p: Parameters):
 
     desc = "Simulating distances and signals"
     for ts_i, ts in enumerate(tqdm(p.tss, desc=desc, leave=False)):
-        if p.freq_set_type == 2:
-            dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-            for curr_freq in range(0, 80, 2):
-                _, signals = signals_model(
-                    curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p
-                )
-                signals_data[round(curr_freq / 2), ts_i] = signals[0]
-            assert np.isnan(signals_data[:, ts_i]).sum() == 0
-        else:
-            curr_freq = get_current_freq(ts_i, p)
+        curr_freq = get_current_freq(ts_i, p)
 
-            dist[ts_i, :], ampl_coeff = generate_point(p, ts)
-            _, signals = signals_model(
-                curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p
-            )
-            signals_data[round(curr_freq / 2), ts_i] = signals[0]
+        dist[ts_i, :], ampl_coeff = generate_point(p, ts)
+        _, signals = signals_model(curr_freq, dist[ts_i : ts_i + 1, :], ampl_coeff, p)
+        signals_data[:, ts_i] = np.NaN
+        if isinstance(curr_freq, np.ndarray):
+            signals_data[curr_freq // 2, ts_i] = signals[0]
+        else:
+            signals_data[int(curr_freq // 2), ts_i] = signals[0]
     return dist, signals_data
 
 
 def interpolate_NAN(signals_data):
     # Interpolate NaNs
-    #  TODO: I wonder if there is a better way <10-01-22, astadnik> #
     #  TODO: Find a better way to interpolate NAN. Ask stakeholders <10-01-22, astadnik> #
     iq_data = signals_data.copy()
     for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
@@ -79,7 +73,6 @@ def interpolate_NAN(signals_data):
 
 def estimate_dist(signals_data, params: Parameters):
     iq_data = interpolate_NAN(signals_data)
-
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
     # Indexes of timestamps
@@ -92,10 +85,8 @@ def estimate_dist(signals_data, params: Parameters):
     ):
         iqs = np.expand_dims(iq_data[:, plot_idxs[t_idx]], axis=0)
         corr_matrix = iqs * iqs.conj().T
-        # print(f"corr_matrix:{corr_matrix.shape}")
-        # ?
+
         corr_matrix += 1e-10 * np.identity(iq_data.shape[0])
-        # VerifyCorrMatrix(corr_matrix)
 
         dist_corrs = my_correlation_use(stear_vects, corr_matrix)
         dist_probs[t_idx, :] = (dist_corrs - dist_corrs.min()) / (
@@ -111,12 +102,11 @@ def main():
     params.freq_set_type = 2
 
     dist, signals_data = simulate_signals(params)
-
     dist_probs = estimate_dist(signals_data, params)
 
     # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    fig_amp, fig_angle = vis_signals(signals_data, dist, params, dump=True)
+    fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True)
     fig_amp.show()
     # vis_dist_probs(dist_probs)
 
