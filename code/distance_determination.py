@@ -62,12 +62,6 @@ def interpolate_NAN(signals_data):
                 iq_data[freq_i, t_i] = last_val
             else:
                 last_val = iq_data[freq_i, t_i]
-    # amplitudes = np.abs(iq_data[0, :])
-    # xs = range(iq_data.shape[1])
-    # angles = np.angle(iq_data[0, :])
-    # px.scatter(y = amplitudes, x= xs).show()
-    # px.scatter(y = angles, x= xs).show()
-    # exit()
     return iq_data
 
 
@@ -104,11 +98,11 @@ def main():
     dist, signals_data = simulate_signals(params)
     dist_probs = estimate_dist(signals_data, params)
 
-    # dump_experiment("default", params, dist, signals_data, dist_probs)
+    dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True)
-    fig_amp.show()
-    # vis_dist_probs(dist_probs)
+    fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True, n=1000)
+    # fig_amp.show()
+    vis_dist_probs(dist_probs, dist, params)
 
 
 if __name__ == "__main__":

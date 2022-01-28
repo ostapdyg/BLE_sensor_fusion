@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable
-
+from simul.walls import wall
 import numpy as np
 
 
@@ -36,18 +36,27 @@ class Parameters:
     # scenario_matrix = [0.1, 0, 0, 1]
     scenario_matrix: list[float] = field(
         default_factory=lambda: [0.2, 0.0, 0.0, 0.6]
+        # default_factory=lambda: [0.2, 0.0, 0.0, 0.0]
     )  # LOS, floor, ceiling, wall
     # scenario_matrix = [0.2, 0, 0, 0]
     # scenario_matrix = [0.2, 0.3, 0.4, 0.6]
 
-    # TODO: make serializable?
     #  TODO: Don't hardcode <26-01-22, astadnik> #
-    dist_funcs: tuple[Callable[[float, float], float], ...] = field(
-        default_factory=lambda: (
-            lambda x, _: abs(x),  # LOS
-            lambda x, t: parallel_wall_dist(x, t, 1.0),  # floor
-            lambda x, t: parallel_wall_dist(x, t, 4.0),  # ceiling
-            lambda x, t: normal_wall_dist(x, t, 13.0),  # wall
+    # dist_funcs: tuple[Callable[[float, float], float], ...] = field(
+    #     default_factory=lambda: (
+    #         # lambda x, _: abs(x),  # LOS
+    #         lambda x, t: wall.Path_LOS().path_length(x, t),  # LOS
+    #         lambda x, t: parallel_wall_dist(x, t, 1.0),  # floor
+    #         lambda x, t: parallel_wall_dist(x, t, 4.0),  # ceiling
+    #         lambda x, t: normal_wall_dist(x, t, 13.0),  # wall
+    #     )
+    # )
+    # DONE?: make serializable?
+    signal_paths: tuple[dict] = field(default_factory=lambda:(
+        wall.Path_LOS().to_dict(),
+        wall.Path_ParralelWall(1.0).to_dict(),          # floor
+        wall.Path_ParralelWall(4.0).to_dict(),          # ceiling
+        wall.Path_NormalWall(13.0).to_dict()            # wall
         )
     )
 
@@ -55,7 +64,7 @@ class Parameters:
 
     n_freq: int = 40  # 2MHz step
 
-    freqs: np.ndarray = field(default=np.arange(0, n_freq * 2, 2.0), repr=False)
+    freqs: np.ndarray = field(default=np.arange(0, n_freq * 2, 2.0), init=False,repr=False)
 
     # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
 
@@ -70,8 +79,9 @@ class Parameters:
 
     ## Define noise and delay errors
     # In this case default numbers will be used
-    delays: np.ndarray = np.array([])
-    noises: np.ndarray = np.array([])
+    delays: np.ndarray =  field(default=np.array([]), repr=False)
+    noises: np.ndarray =  field(default=np.array([]), repr=False)
+
 
     delta_t: float = 300e-6  # time to do one frequency IQ measurement
     tss: np.ndarray = field(default=calc_measure_timestamps(delta_t), repr=False)

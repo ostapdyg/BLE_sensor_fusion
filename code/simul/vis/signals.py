@@ -11,7 +11,10 @@ def vis_signals(
     n_freq=20,
     n=100,
     dump=False,
+    dump_dir="../graphs"
 ):
+    # TODO: Fix for Windows?
+
     #  TODO: Plot different graph if the data contains nans <26-01-22, astadnik> #
     assert np.all(~np.isnan(signals_data))
     amp, angle = np.abs(signals_data[:n_freq, :n]), np.angle(signals_data[:n_freq, :n])
@@ -23,14 +26,14 @@ def vis_signals(
         scene=dict(xaxis_title="Distance", yaxis_title="Freq", zaxis_title="Signal amp")
     )
     if dump:
-        fig_amp.write_html("/tmp/amplitudes.html")
+        fig_amp.write_html(f"{dump_dir}/amplitudes.html")
     fig_angle = go.Figure(data=[go.Surface(z=angle, x=x, y=y)]).update_layout(
         scene=dict(
             xaxis_title="Distance", yaxis_title="Freq", zaxis_title="Signal angle"
         )
     )
     if dump:
-        fig_angle.write_html("/tmp/angles.html")
+        fig_angle.write_html(f"{dump_dir}/angles.html")
 
     fig_reals = go.Figure(data=[go.Surface(z=reals, x=x, y=y)]).update_layout(
         scene=dict(
@@ -38,5 +41,5 @@ def vis_signals(
         )
     )
     if dump:
-        fig_reals.write_html("/tmp/reals.html")
+        fig_reals.write_html(f"{dump_dir}/reals.html")
     return fig_amp, fig_angle, fig_reals
