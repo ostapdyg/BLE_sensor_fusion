@@ -3,7 +3,7 @@ from typing import Callable
 from simul.walls import wall
 import numpy as np
 
-
+# 0-7 seconds
 def calc_measure_timestamps(delta_t):
     # times of measurement 8 frequencies in a pack
     onepack_times = delta_t * np.arange(0.0, 8.0)

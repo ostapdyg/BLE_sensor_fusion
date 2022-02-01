@@ -43,3 +43,33 @@ def vis_signals(
     if dump:
         fig_reals.write_html(f"{dump_dir}/reals.html")
     return fig_amp, fig_angle, fig_reals
+
+
+import plotly.express as px
+
+def vis_signals_2d(
+    signals_data: np.ndarray,
+    dist: np.ndarray,
+    params: Parameters,
+    freq_num=1,
+    n=100,
+    dump=False,
+    dump_dir="../graphs"
+):
+    assert np.all(~np.isnan(signals_data))
+    # amp, angle = np.abs(signals_data[:n_freq, :n]), np.angle(signals_data[:n_freq, :n])
+    reals = np.real(signals_data[freq_num, :n])
+    f = params.freqs[freq_num]
+    x = dist[:n, 0]
+    t = params.tss[:n]
+
+    # fig_reals = px.line(signal_val=reals, time_s=t, y="Signals", x="Time")
+    fig_reals = go.Figure(go.Scatter(y=reals, x=t)).update_layout(
+        xaxis_title="Time, s",
+        yaxis_title="Signal real part",
+    )
+# # , x="Signal", yaxis_title="Time, s"
+#     print(reals, t)
+    if dump:
+        fig_reals.write_html(f"{dump_dir}/reals.html")
+    return fig_reals
