@@ -26,8 +26,14 @@ def dump_experiment(
         sha = repo.head.object.hexsha
         fp.write(sha)
     with open(os.path.join(path, "params.json"), "w") as fp:
-        d = dataclasses.asdict(params, dict_factory=lambda x:{k:v for (k,v) in x if not(type(v) is np.ndarray)})
-        json.dump(d, fp)
+        d = dataclasses.asdict(
+            params,
+            dict_factory=lambda x: {
+                k: v for (k, v) in x if type(v) is not np.ndarray
+            },
+        )
+
+        json.dump(d, fp, indent=1)
     with open(os.path.join(path, "dist.npy"), "wb") as fp:
         np.save(fp, dist)
     with open(os.path.join(path, "signals_data.npy"), "wb") as fp:
