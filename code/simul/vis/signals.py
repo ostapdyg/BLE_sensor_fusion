@@ -1,75 +1,96 @@
-# import plotly.express as px
 import numpy as np
-import plotly.graph_objects as go
-from simul.parameters import Parameters
+import pandas as pd
+import plotly.express as px
+
+# import plotly.io as pio
+# pio.renderers.default = 'browser'
 
 
 def vis_signals(
+    tss: np.ndarray,
     signals_data: np.ndarray,
-    dist: np.ndarray,
-    p: Parameters,
-    n_freq=20,
-    n=100,
-    dump=False,
-    dump_dir="../graphs"
+    signals_data_pruned: np.ndarray,
+    *args: tuple[np.ndarray, str],
+    n: int = None,
+    freqs: list[int] = None
 ):
-    # TODO: Fix for Windows?
+    if n is None:
+        n = signals_data.shape[1]
+    if freqs is None:
+        freqs = list(range(signals_data.shape[0]))
 
-    #  TODO: Plot different graph if the data contains nans <26-01-22, astadnik> #
-    assert np.all(~np.isnan(signals_data))
-    amp, angle = np.abs(signals_data[:n_freq, :n]), np.angle(signals_data[:n_freq, :n])
-    reals = np.real(signals_data[:n_freq, :n])
-    y = p.freqs[:n_freq]
-    x = dist[:n, 0]
-    print(amp.shape, angle.shape, reals.shape, x.shape, y.shape)
-    fig_amp = go.Figure(data=[go.Surface(z=amp, x=x, y=y)]).update_layout(
-        scene=dict(xaxis_title="Distance", yaxis_title="Freq", zaxis_title="Signal amp")
+    def get_df(signals: np.ndarray, name: str, size: float):
+        assert freqs is not None
+        data = [
+            [ts, real, imag, str(freq), name, size]
+            for freq, (reals, imags) in enumerate(
+                zip(np.real(signals), np.imag(signals))
+            )
+            for ts, real, imag in zip(tss[:n], reals, imags)
+            if real != np.nan and freq in freqs
+        ]
+        columns = ["timestamp", "real", "imaginary", "freq", "name", "size"]
+        return pd.DataFrame(data=data, columns=columns)
+
+    df = pd.concat(
+        [
+            get_df(signals_data[:, :n], "all", 0.5),
+            get_df(signals_data_pruned[:, :n], "measures", 1),
+        ]
+        + [get_df(signals[:, :n], name, 0.5) for signals, name in args]
     )
-    if dump:
-        fig_amp.write_html(f"{dump_dir}/amplitudes.html")
-    fig_angle = go.Figure(data=[go.Surface(z=angle, x=x, y=y)]).update_layout(
-        scene=dict(
-            xaxis_title="Distance", yaxis_title="Freq", zaxis_title="Signal angle"
-        )
+
+    return px.scatter_3d(
+        df,
+        x="timestamp",
+        y="real",
+        z="imaginary",
+        color="name" if len(freqs) == 1 else "freq",
+        symbol="name",
+        size="size",
+        height=1200,
     )
-    if dump:
-        fig_angle.write_html(f"{dump_dir}/angles.html")
-
-    fig_reals = go.Figure(data=[go.Surface(z=reals, x=x, y=y)]).update_layout(
-        scene=dict(
-            xaxis_title="Distance", yaxis_title="Freq", zaxis_title="Signal real part"
-        )
-    )
-    if dump:
-        fig_reals.write_html(f"{dump_dir}/reals.html")
-    return fig_amp, fig_angle, fig_reals
 
 
-import plotly.express as px
-
-def vis_signals_2d(
+def vis_fft(
+    tss: np.ndarray,
     signals_data: np.ndarray,
-    dist: np.ndarray,
-    params: Parameters,
-    freq_num=1,
-    n=100,
-    dump=False,
-    dump_dir="../graphs"
+    signals_data_pruned: np.ndarray,
+    *args: tuple[np.ndarray, str],
+    n: int = None,
+    freqs: list[int] = None
 ):
-    assert np.all(~np.isnan(signals_data))
-    # amp, angle = np.abs(signals_data[:n_freq, :n]), np.angle(signals_data[:n_freq, :n])
-    reals = np.real(signals_data[freq_num, :n])
-    f = params.freqs[freq_num]
-    x = dist[:n, 0]
-    t = params.tss[:n]
+    if n is None:
+        n = signals_data.shape[1]
+    if freqs is None:
+        freqs = list(range(signals_data.shape[0]))
 
-    # fig_reals = px.line(signal_val=reals, time_s=t, y="Signals", x="Time")
-    fig_reals = go.Figure(go.Scatter(y=reals, x=t)).update_layout(
-        xaxis_title="Time, s",
-        yaxis_title="Signal real part",
+    def get_df(signals: np.ndarray, name: str):
+        assert freqs is not None
+        return pd.DataFrame(
+            [
+                {
+                    "timestamp": ts,  # Todo: add unit
+                    "abs": np.abs(v),
+                    "real": v.real,
+                    "imag": v.imag,
+                    "freq": str(freq),
+                    "name": name,
+                }
+                for freq, signal in enumerate(signals)
+                for ts, v in zip(
+                    tss[:n][~np.isnan(signal)], np.fft.fft(signal[~np.isnan(signal)])
+                )
+                if freq in freqs
+            ]
+        )
+
+    df = pd.concat(
+        [
+            get_df(signals_data[:, :n], "all"),
+        ]
+        + [get_df(signals[:, :n], name) for signals, name in args]
     )
-# # , x="Signal", yaxis_title="Time, s"
-#     print(reals, t)
-    if dump:
-        fig_reals.write_html(f"{dump_dir}/reals.html")
-    return fig_reals
+    return px.line(
+        df, y="abs", color="name" if len(freqs) == 1 else "freq", symbol="name"
+    )

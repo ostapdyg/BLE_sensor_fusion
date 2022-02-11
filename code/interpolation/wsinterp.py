@@ -37,7 +37,3 @@ def wsinterp(x, xp, fp, left=None, right=None):
         return float(fp_at_x)
 
     return fp_at_x
-
-if 1 == 1:
-    if 2 == 2:
-        print('hm')
