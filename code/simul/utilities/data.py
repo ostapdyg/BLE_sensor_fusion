@@ -12,9 +12,10 @@ def dump_experiment(
     params: Parameters,
     dist: np.ndarray,
     signals_data: np.ndarray,
-    dist_probs: np.ndarray = None,
+    dist_probs: np.ndarray,
 ):
-    assert os.path.exists("../data")
+    if not os.path.exists("../data"):
+        os.mkdir("../data")
     path = os.path.join("../data", exp_name)
     if os.path.exists(path):
         if input(f"{path} exists, rewrite? (y/n)") != "y":
@@ -28,9 +29,7 @@ def dump_experiment(
     with open(os.path.join(path, "params.json"), "w") as fp:
         d = dataclasses.asdict(
             params,
-            dict_factory=lambda x: {
-                k: v for (k, v) in x if type(v) is not np.ndarray
-            },
+            dict_factory=lambda x: {k: v for (k, v) in x if type(v) is not np.ndarray},
         )
 
         json.dump(d, fp, indent=1)

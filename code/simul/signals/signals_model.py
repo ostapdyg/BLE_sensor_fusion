@@ -5,7 +5,7 @@ from simul.parameters import Parameters
 
 
 def signals_model(
-    omega_id: float, dist: np.ndarray, ampl_coeff: np.ndarray, p: Parameters
+    omega_id: np.ndarray | float, dist: np.ndarray, ampl_coeff: np.ndarray, p: Parameters
 ) -> tuple[np.ndarray, np.ndarray]:
     freq_low = 2.402e9  # 2.402 GHz
     omega_low = 2.0 * np.pi * freq_low  # To radians

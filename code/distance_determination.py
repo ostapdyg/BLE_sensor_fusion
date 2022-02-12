@@ -1,7 +1,6 @@
-import logging
+# import logging
 
 import numpy as np
-import plotly.express as px
 from tqdm.auto import tqdm, trange
 
 from simul.distances.calc_stear_vect import calc_stear_vect
@@ -13,10 +12,10 @@ from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
 from simul.vis.signals import vis_signals
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
-def get_current_freq(ts_i, p: Parameters):
+def get_current_freq(ts_i, p: Parameters) -> np.ndarray | float:
     """
     big steps by 10, small steps by 2
 
@@ -52,8 +51,6 @@ def simulate_signals(p: Parameters):
 
 
 def interpolate_NAN(signals_data):
-    # Interpolate NaNs
-    #  TODO: Find a better way to interpolate NAN. Ask stakeholders <10-01-22, astadnik> #
     iq_data = signals_data.copy()
     for freq_i in trange(iq_data.shape[0], desc="Interpolating NaNs", leave=False):
         last_val = 0 + 0j
@@ -100,8 +97,6 @@ def main():
 
     dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True, n=1000)
-    # fig_amp.show()
     vis_dist_probs(dist_probs, dist, params)
 
 
