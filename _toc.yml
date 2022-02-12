@@ -1,0 +1,12 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+parts:
+  # - caption: Simulator
+  #   chapters:
+  - caption: Interpolation
+    chapters:
+    - file: code/EDA_interpolation
+    - file: code/interpolation_experiments

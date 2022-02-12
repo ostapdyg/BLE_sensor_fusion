@@ -5,7 +5,8 @@ from simul.parameters import Parameters
 from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
 from simul.vis.signals import vis_signals
-from simul.vis.signals import vis_signals_2d
+
+# from simul.vis.signals import vis_signals_2d
 
 np.random.seed(10)
 
@@ -13,9 +14,10 @@ np.random.seed(10)
 experiments = {
     "default": Parameters(freq_set_type=1),
     "default_full": Parameters(freq_set_type=2),
-    "full_no_walls":Parameters(freq_set_type=2, scenario_matrix=[1.0, 0.0, 0.0, 0.0])
+    # "default_noice"
+    #     "default_noice_full"
+    "full_no_walls": Parameters(freq_set_type=2, scenario_matrix=[1.0, 0.0, 0.0, 0.0])
     # "default_full": Parameters(freq_set_type=2),
-
 }
 
 
@@ -24,7 +26,7 @@ def main():
     exp_name = "full_no_walls"
     params = experiments[exp_name]
     dist, signals_data = simulate_signals(params)
-    vis_signals_2d(signals_data, dist, params, n=-1).show()
+    vis_signals(params.tss, signals_data, dist, n=500).show()
     # print(params.tss, signals_data)
     dist_probs = estimate_dist(signals_data, params)
     # fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True)

@@ -3,6 +3,7 @@ plotly
 pandas
 tqdm
 gitpython
+scipy
 
 # Optional
 jupyterlab
@@ -10,3 +11,4 @@ ipywidgets
 ipdb
 black
 isort
+jupyter-book
