@@ -1,5 +1,8 @@
-import numpy as np
+from __future__ import annotations
+
 from typing import Union
+
+import numpy as np
 
 
 def parallel_wall_dist(x: float, t: float, wall_pos: float) -> float:
@@ -26,28 +29,22 @@ class SignalPath:
         pass
 
     def path_length(self, x: Union[float, np.ndarray], t: Union[float, np.ndarray]):
-
         raise NotImplementedError
 
     @staticmethod
-    def from_dict(d: dict()) -> 'SignalPath':
-        # print(d)
-        if not "type" in d:
-            return None
-
-        if(d["type"] == "LOS"):
+    def from_dict(d: dict) -> SignalPath:
+        if d["type"] == "LOS":
             return Path_LOS()
 
-        if(d["type"] == "ParralelWall"):
+        if d["type"] == "ParralelWall":
             return Path_ParralelWall(d["wall_y"])
 
-        if(d["type"] == "NormalWall"):
+        if d["type"] == "NormalWall":
             return Path_NormalWall(d["wall_x"])
 
         return SignalPath()
 
     def to_dict(self) -> dict:
-
         return {"type": "SignalPath"}
 
 
@@ -56,37 +53,29 @@ class Path_LOS(SignalPath):
         pass
 
     def path_length(self, x: Union[float, np.ndarray], t: Union[float, np.ndarray]):
-        # print(f"LOS:{x}")
         return np.abs(x)
 
     def to_dict(self):
-
         return {"type": "LOS"}
 
 
 class Path_ParralelWall(SignalPath):
     def __init__(self, wall_dist):
-
         self.wall_dist = wall_dist
 
     def path_length(self, x: Union[float, np.ndarray], t: Union[float, np.ndarray]):
-
         return 2 * ((x / 2) ** 2 + (self.wall_dist) ** 2) ** 0.5
 
     def to_dict(self):
-
         return {"type": "ParralelWall", "wall_y": self.wall_dist}
 
 
 class Path_NormalWall(SignalPath):
     def __init__(self, wall_x):
-
         self.wall_x = wall_x
 
     def path_length(self, x: Union[float, np.ndarray], t: Union[float, np.ndarray]):
-
         return np.abs(x - self.wall_x) + np.abs(self.wall_x)
 
     def to_dict(self):
-
         return {"type": "NormalWall", "wall_x": self.wall_x}

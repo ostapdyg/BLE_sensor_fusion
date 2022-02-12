@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Callable
-from simul.walls import wall
+
 import numpy as np
 
-# 0-7 seconds
+from simul.walls import wall
+
+
 def calc_measure_timestamps(delta_t):
     # times of measurement 8 frequencies in a pack
     onepack_times = delta_t * np.arange(0.0, 8.0)
@@ -52,11 +54,12 @@ class Parameters:
     #     )
     # )
     # DONE?: make serializable?
-    signal_paths: tuple[dict] = field(default_factory=lambda:(
-        wall.Path_LOS().to_dict(),
-        wall.Path_ParralelWall(1.0).to_dict(),          # floor
-        wall.Path_ParralelWall(4.0).to_dict(),          # ceiling
-        wall.Path_NormalWall(13.0).to_dict()            # wall
+    signal_paths: tuple[dict, ...] = field(
+        default_factory=lambda: (
+            wall.Path_LOS().to_dict(),
+            wall.Path_ParralelWall(1.0).to_dict(),  # floor
+            wall.Path_ParralelWall(4.0).to_dict(),  # ceiling
+            wall.Path_NormalWall(13.0).to_dict(),  # wall
         )
     )
 
@@ -64,7 +67,9 @@ class Parameters:
 
     n_freq: int = 40  # 2MHz step
 
-    freqs: np.ndarray = field(default=np.arange(0, n_freq * 2, 2.0), init=False,repr=False)
+    freqs: np.ndarray = field(
+        default=np.arange(0, n_freq * 2, 2.0), init=False, repr=False
+    )
 
     # spectr_algo = 1; # 1 - FFT, 2 - MUSIC
 
@@ -79,9 +84,8 @@ class Parameters:
 
     ## Define noise and delay errors
     # In this case default numbers will be used
-    delays: np.ndarray =  field(default=np.array([]), repr=False)
-    noises: np.ndarray =  field(default=np.array([]), repr=False)
-
+    delays: np.ndarray = field(default=np.array([]), repr=False)
+    noises: np.ndarray = field(default=np.array([]), repr=False)
 
     delta_t: float = 300e-6  # time to do one frequency IQ measurement
     tss: np.ndarray = field(default=calc_measure_timestamps(delta_t), repr=False)
