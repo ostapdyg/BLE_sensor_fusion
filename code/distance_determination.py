@@ -10,7 +10,7 @@ from simul.signals.generate_point import generate_point
 from simul.signals.signals_model import signals_model
 from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
-from simul.vis.signals import vis_signals
+from simul.vis.signals import vis_signals, vis_fft
 
 # logger = logging.getLogger(__name__)
 
@@ -98,6 +98,8 @@ def main():
     dump_experiment("default", params, dist, signals_data, dist_probs)
 
     vis_dist_probs(dist_probs, dist, params)
+    vis_fft(signals_data[0,:], params.tss).show()
+    vis_fft(signals_data[:,0], params.freqs).show()
 
 
 if __name__ == "__main__":
