@@ -9,4 +9,5 @@ parts:
   - caption: Interpolation
     chapters:
     - file: code/EDA_interpolation
-    - file: code/interpolation_experiments
+    - file: code/interpolation_experiments_irregular
+    - file: code/interpolation_experiments_irregular_2
