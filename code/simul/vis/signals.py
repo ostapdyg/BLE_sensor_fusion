@@ -49,7 +49,7 @@ def vis_signals(
         color="name" if len(freqs) == 1 else "freq",
         symbol="name",
         size="size",
-        height=1200,
+        height=600,
     )
 
 
