@@ -97,7 +97,7 @@ def main():
 
     dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    vis_dist_probs(dist_probs, dist, params)
+    vis_dist_probs(dist_probs, dist, params).show()
     vis_fft(signals_data[0,:], params.tss).show()
     vis_fft(signals_data[:,0], params.freqs).show()
 

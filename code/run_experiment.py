@@ -32,7 +32,7 @@ def main():
     # fig_amp, fig_angle, fig_reals = vis_signals(signals_data, dist, params, dump=True)
     # fig_amp.show()
     # fig_angle.show()
-    # vis_dist_probs(dist_probs, dist, params)
+    # vis_dist_probs(dist_probs, dist, params).show()
 
     # dump_experiment(exp_name, params, dist, signals_data, dist_probs)
 
