@@ -72,54 +72,12 @@ def vis_signals2d(df: pd.DataFrame, kind: str = "real"):
     )
 
 
-# def vis_fft(
-#     tss: np.ndarray,
-#     signals_data: np.ndarray,
-#     signals_data_pruned: np.ndarray,
-#     *args: tuple[np.ndarray, str],
-#     n: int = None,
-#     freqs: list[int] = None
-# ):
-#     if n is None:
-#         n = signals_data.shape[1]
-#     if freqs is None:
-#         freqs = list(range(signals_data.shape[0]))
-
-#     def get_df(signals: np.ndarray, name: str):
-#         assert freqs is not None
-#         return pd.DataFrame(
-#             [
-#                 {
-#                     "timestamp": ts,  # Todo: add unit
-#                     "abs": np.abs(v),
-#                     "real": v.real,
-#                     "imag": v.imag,
-#                     "freq": str(freq),
-#                     "name": name,
-#                 }
-#                 for freq, signal in enumerate(signals)
-#                 for ts, v in zip(
-#                     tss[:n][~np.isnan(signal)], np.fft.fft(signal[~np.isnan(signal)])
-#                 )
-#                 if freq in freqs
-#             ]
-#         )
-
-#     df = pd.concat(
-#         [
-#             get_df(signals_data[:, :n], "all"),
-#         ]
-#         + [get_df(signals[:, :n], name) for signals, name in args]
-#     )
-#     return px.line(
-#         df, y="abs", color="name" if len(freqs) == 1 else "freq", symbol="name"
-#     )
-
-
-def fft(vals, signal_tss, max_freq=None):
+def fft(vals, signal_tss, max_freq=None, n=None):
+    if not n:
+        n = vals.shape[-1]
     sample_rate = signal_tss.shape[-1] / (signal_tss[-1] - signal_tss[0])
-    fft_freqs = np.fft.fftfreq(vals.shape[-1]) * sample_rate
-    fft_vals = np.fft.fft(vals) / (vals.shape[0])
+    fft_freqs = np.fft.fftfreq(n) * sample_rate
+    fft_vals = np.fft.fft(vals, n=n) / (vals.shape[0])
     if max_freq:
         f_idxs = np.abs(fft_freqs) < max_freq
         return fft_vals[f_idxs], fft_freqs[f_idxs]
@@ -133,7 +91,11 @@ def vis_fft(
     fig=None,
     **kwargs,
 ):
-    fft_vals, fft_freqs = fft(signal_vals, signal_tss, max_freq)
+    if("mult" in kwargs):
+        n = signal_vals.shape[0]*kwargs["mult"]
+    else:
+        n = signal_vals.shape[0]
+    fft_vals, fft_freqs = fft(signal_vals, signal_tss, max_freq, n=n)
     if not max_freq:
         maxval = np.max(np.abs(fft_vals))
         max_freq = max(np.abs(fft_freqs[np.abs(fft_vals) > 0.05 * maxval])) * 1.5
@@ -155,9 +117,15 @@ def vis_fft(
             name=(kwargs["name"] if "name" in kwargs else ""),
         )
     )
+    if(not "title" in kwargs):
+        kwargs["title"] = f"Sample rate:{1/(signal_tss[1] - signal_tss[0])} Hz;"
+    if(not "xaxis_title" in kwargs):
+        kwargs["xaxis_title"] = "Frequency, Hz"
+    if(not "yaxis_title" in kwargs):
+        kwargs["yaxis_title"] = "Amplitude"
     fig.update_layout(
-        xaxis_title="Frequency, Hz",
-        yaxis_title="Amplitude",
-        title=f"Sample rate:{1/(signal_tss[1] - signal_tss[0])} Hz;",
+        xaxis_title = kwargs["xaxis_title"],
+        yaxis_title = kwargs["yaxis_title"],
+        title = kwargs["title"],
     )
     return fig
