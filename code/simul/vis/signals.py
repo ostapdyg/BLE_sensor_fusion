@@ -71,16 +71,17 @@ def vis_signals2d(df: pd.DataFrame, kind: str = "real"):
         # markers=True,
         height=600,
     )
-    points = px.scatter(
-        df[df["name"]=="measures"],
-        x="timestamp",
-        y=kind,
-        color="name" if df["freq"].unique().size == 1 else "freq",
-        symbol="name",
-        # size="size",
-        height=600,
-        )
-    return go.Figure(data=lines.data+points.data).show()
+    # points = px.scatter(
+    #     df[df["name"]=="measures"],
+    #     x="timestamp",
+    #     y=kind,
+    #     color="name" if df["freq"].unique().size == 1 else "freq",
+    #     symbol="name",
+    #     # size="size",
+    #     height=600,
+    #     )
+    # return go.Figure(data=lines.data+points.data).show()
+    return lines
 
 
 def fft(vals, signal_tss, max_freq=None, n=None):
