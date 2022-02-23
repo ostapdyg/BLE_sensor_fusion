@@ -11,7 +11,7 @@ from simul.signals.signals_model import signals_model
 from simul.utilities.data import dump_experiment
 from simul.vis.dist_probs import vis_dist_probs
 from simul.vis.signals import vis_signals, vis_fft
-
+from simul.signals.augment import signal_prune, signal_add_noise
 # logger = logging.getLogger(__name__)
 
 
@@ -95,9 +95,9 @@ def main():
     dist, signals_data = simulate_signals(params)
     dist_probs = estimate_dist(signals_data, params)
 
-    dump_experiment("default", params, dist, signals_data, dist_probs)
+    # dump_experiment("default", params, dist, signals_data, dist_probs)
 
-    vis_dist_probs(dist_probs, dist, params).show()
+    vis_dist_probs(dist_probs, dist).show()
     vis_fft(signals_data[0,:], params.tss).show()
     vis_fft(signals_data[:,0], params.freqs).show()
 

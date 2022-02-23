@@ -8,7 +8,7 @@ from tqdm.auto import tqdm
 
 
 def __get_df(
-    signals: np.ndarray, name: str, size: float, freqs: list[int], tss: np.ndarray
+    signals: np.ndarray, tss: np.ndarray, name: str, size: float, freqs: list[int]
 ):
     assert freqs is not None
     data = [
@@ -37,9 +37,9 @@ def get_vis_df(
 
     tss = tss[:n]
     data = [
-        (signals_data[:, :n], "ground truth", 0.5, freqs, tss),
-        (signals_data_pruned[:, :n], "measures", 1, freqs, tss),
-    ] + [(signals[:, :n], name, 0.5, freqs, tss) for signals, name in args]
+        (signals_data[:, :n], tss, "ground truth", 0.5, freqs),
+        (signals_data_pruned[:, :n], tss, "measures", 1, freqs),
+    ] + [(signals[:, :n], tss, name, 0.5, freqs) for signals, name in args]
 
     with Pool(cpu_count()) as p:
         dfs = p.starmap(__get_df, data)
@@ -61,15 +61,26 @@ def vis_signals(df: pd.DataFrame):
 
 def vis_signals2d(df: pd.DataFrame, kind: str = "real"):
     assert kind in df.columns
-    return px.scatter(
-        df,
+    lines = px.line(
+        df[df["name"]!="measures"],
+        x="timestamp",
+        y=kind,
+        color="name" if df["freq"].unique().size == 1 else "freq",
+        # symbol="name",
+        # size="size",
+        # markers=True,
+        height=600,
+    )
+    points = px.scatter(
+        df[df["name"]=="measures"],
         x="timestamp",
         y=kind,
         color="name" if df["freq"].unique().size == 1 else "freq",
         symbol="name",
-        size="size",
+        # size="size",
         height=600,
-    )
+        )
+    return go.Figure(data=lines.data+points.data).show()
 
 
 def fft(vals, signal_tss, max_freq=None, n=None):
@@ -82,6 +93,32 @@ def fft(vals, signal_tss, max_freq=None, n=None):
         f_idxs = np.abs(fft_freqs) < max_freq
         return fft_vals[f_idxs], fft_freqs[f_idxs]
     return fft_vals, fft_freqs
+
+
+def get_fft_df(
+    tss: np.ndarray,
+    signals_data: np.ndarray,
+    signals_data_pruned: np.ndarray,
+    *args: tuple[np.ndarray, str],
+    freqs: list[int] = None,
+    n: int = None,
+):
+    if n is None:
+        n = signals_data.shape[1]
+    if freqs is None:
+        freqs = list(range(signals_data.shape[0]))
+    tss = tss[:n]
+    fft_freqs = fft(signals_data[:, :n],tss)[1]
+    data = [
+        (np.abs(fft(signals_data[:, :n], tss)[0])+0j, fft_freqs, "ground truth", 0.5, freqs),
+        # (signals_data_pruned[:, :n], "measures", 1, freqs, tss),
+    ] + [(np.abs(fft(signals[:, :n], tss)[0])+0j, fft_freqs, name, 0.5, freqs) for signals, name in args]
+
+    with Pool(cpu_count()) as p:
+        dfs = p.starmap(__get_df, data)
+    return pd.concat(dfs)
+
+
 
 
 def vis_fft(
