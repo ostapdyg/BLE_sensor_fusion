@@ -27,7 +27,7 @@ def get_current_freq(ts_i, p: Parameters) -> np.ndarray | float:
         return (ts_i % 8) * 10 + f2_i * 2
     if p.freq_set_type == 2:
         return np.arange(0, p.n_freq) * 2
-    return float(np.random.uniform(0, p.n_freq) - 1) * 2
+    return int(np.random.uniform(0, p.n_freq)) * 2
 
 
 def simulate_signals(p: Parameters):
@@ -95,7 +95,7 @@ def main():
     dist, signals_data = simulate_signals(params)
     dist_probs = estimate_dist(signals_data, params)
 
-    # dump_experiment("default", params, dist, signals_data, dist_probs)
+    dump_experiment("default", params, dist, signals_data, dist_probs)
 
     vis_dist_probs(dist_probs, dist).show()
     vis_fft(signals_data[0,:], params.tss).show()

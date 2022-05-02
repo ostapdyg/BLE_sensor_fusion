@@ -31,7 +31,9 @@ def normal_wall_dist(x: float, t: float, wall_pos: float) -> float:
 
 @dataclass(kw_only=True)
 class Parameters:
-    vel: int = 5
+    # vel: int = 5
+    vel: int = 1
+
     start_pos: int = 10
     key_x0: int = 10
 
