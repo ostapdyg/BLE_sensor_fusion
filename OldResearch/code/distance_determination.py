@@ -63,11 +63,13 @@ def interpolate_NAN(signals_data):
 
 
 def estimate_dist(signals_data, params: Parameters):
-    iq_data = interpolate_NAN(signals_data)
+    # iq_data = interpolate_NAN(signals_data)
+    iq_data = signals_data
     # Estimate distances
     dists = np.arange(0, 20, 0.02)
     # Indexes of timestamps
-    plot_idxs = np.arange(0, len(params.tss), 8)
+    # plot_idxs = np.arange(0, len(params.tss), 8)
+    plot_idxs = np.arange(0, signals_data.shape[1], 8)
     dist_probs = np.zeros((max(plot_idxs.shape), max(dists.shape)))
     # for t_idx in trange(0, max(measure_timestamps.shape)):
     stear_vects = calc_stear_vect(params.freqs, 2 * dists)

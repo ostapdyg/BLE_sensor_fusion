@@ -39,7 +39,7 @@ class Parameters:
 
     # scenario_matrix = [0.1, 0, 0, 1]
     scenario_matrix: list[float] = field(
-        default_factory=lambda: [0.2, 0.0, 0.0, 0.6]
+        default_factory=lambda: [0.5, 0.0, 0.0, 0.5]
         # default_factory=lambda: [0.2, 0.0, 0.0, 0.0]
     )  # LOS, floor, ceiling, wall
     # scenario_matrix = [0.2, 0, 0, 0]
