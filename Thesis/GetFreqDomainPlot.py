@@ -23,10 +23,13 @@ ax.plot(fft_freqs[(fft_freqs>=0)*(6>=fft_freqs)], fft_amps[(fft_freqs>=0)*(6>=ff
 
 plot_format_axes(ax)
 
-ax.text(6, 100, "$F_f$, s")
+# ax.text(6, 100, "$F_f$, s")
+ax.text(6, 100, "$F_t$, Hz")
 
 ax.xaxis.set_ticks([0, 1, 2, 5])
-ticks = {0:'0', 1:'$x_0/c$', 2:'$x_1/c$', 5:'$x_2/c$'}
+# ticks = {0:'0', 1:'$x_0/c$', 2:'$x_1/c$', 5:'$x_2/c$'}
+ticks = {0:'0', 1:'$f_i V_0/c$', 2:'$f_iV_1/c$', 5:'$f_iV_2/c$'}
+
 ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x,pos: ticks[x] if x in ticks else ''))
 ax.yaxis.set_ticks([])
 plt.show()

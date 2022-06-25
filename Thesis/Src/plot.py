@@ -84,6 +84,16 @@ def plot_errors(deltas, xlim = 1.0, ylim = 1.0):
     return fig, ax
 
 
+def plot_particles(ax, p_old, w_old, p, w, w_m=6, h_m=5):
+    N = p_old.shape[0]
+    fig, ax = plt.subplots()
+    plt.axis('scaled')
+    ax.set_xlim([-.05*w_m, w_m*1.05])
+    ax.set_ylim([-.05*h_m, h_m*1.05])
+
+    ax.scatter(p_old[:,0], p_old[:,1], s=2+(weights**.5)*N_PARTICLES*5, alpha=0.7)
+    plt.grid(True)
+    return fig, ax
 
 def plot_format_axes(ax, x=True, y=True):
     ax.spines["top"].set_visible(False)

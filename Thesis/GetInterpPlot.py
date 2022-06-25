@@ -4,7 +4,7 @@ import numpy as np
 from scipy.interpolate import make_lsq_spline, BSpline
 
 
-from Src.simul import simul_get_pos, simul_signals_shift_full, fft, estimate_distance
+from Src.simul import simul_get_pos, simul_signals_shift_full
 from Src.simul import ANCHOR_COORDS, FREQS, C_SPEED
 from Src.estimate_dist import fft, interp_lsq_spline
 

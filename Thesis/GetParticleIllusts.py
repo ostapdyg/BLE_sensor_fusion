@@ -38,8 +38,8 @@ def main():
         axes[0].scatter(particles[:,0], particles[:,1], s=2+(weights**.5)*N_PARTICLES*5, alpha=0.2)
         axes[0].scatter(3, 5, alpha = 0.4, color="red", marker="x", s=100)
 
-    particles[:,0] += np.random.normal(5, 1, size=N_PARTICLES)
-    particles[:,1] += np.random.normal(1, 1, size=N_PARTICLES)
+    particles[:,0] += np.random.normal(0, 5, size=N_PARTICLES)
+    particles[:,1] += np.random.normal(0, 5, size=N_PARTICLES)
 
     if(PLOT_PREDICT):
         axes[0].scatter(particles[:,0], particles[:,1], s=2+(weights**.5)*N_PARTICLES*5, alpha=0.5)
