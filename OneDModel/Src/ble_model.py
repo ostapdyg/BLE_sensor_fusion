@@ -70,11 +70,11 @@ def simul_signals_shift_full(anchor, target)->np.ndarray:
 
 
 # dists: 0:10, 0.01
-def estimate_dist_probf(signal_v, freqs=FREQS, dist_max=10):
+def estimate_dist_probf(signal_v, freqs=FREQS):
     signal_interp = signal_v
     fft_vals, fft_freqs = fft(signal_interp, freqs)
     # dists = np.arange(0, dist_max*100)
     # probs = np.zeros([dist_max*100])
-    res = interp1d(fft_freqs*C_SPEED, fft_vals)
-    return lambda x:res(x)
+    res = interp1d(fft_freqs*C_SPEED, fft_vals**2)
+    return lambda x:res(-x)
     # return fft_vals, fft_freqs*C_SPEED
