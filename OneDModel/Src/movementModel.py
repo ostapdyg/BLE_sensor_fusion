@@ -21,8 +21,23 @@ class MovementModel:
             8: np.array((-1.4, 0))
         }
 
-    def update(self, t, dt):
-        self.x += dt*self.vel
-        if (t in self.waypoints):
-            self.vel = self.waypoints[t]
-        return self.x
+        self.tss = np.array([-1.0, 0.0, 3.0, 5.0, 6.0, 8.0, 11.0])
+        self.xss = np.array([
+            (-1.4, 0),
+            (0, 0),
+            (4.8, 0),
+            (4.8, 3.2),
+            (4.8, 3.2),
+            (4.8, 0),
+            (0, 0),
+        ])
+        print(self.xss.shape)
+
+    # def update(self, t, dt):
+    #     self.x += dt*self.vel
+    #     if (t in self.waypoints):
+    #         self.vel = self.waypoints[t]
+    #     return self.x
+
+    def get_pos(self, t):
+        return np.array([np.interp(t, self.tss, self.xss[:, 0]), np.interp(t, self.tss, self.xss[:, 1])])

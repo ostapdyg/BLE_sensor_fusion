@@ -82,6 +82,7 @@ def pf_resample_if_needed(particles, weights, threshold=0.5, method="systematic"
     if(effective_N(weights) < particles.shape[0]*threshold):
         print("  resample...")
         systematic_resample(particles, weights)
+        pf_predict_mov(particles, 0, 0.01)
 
 
 # from  import plot_pdf

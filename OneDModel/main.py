@@ -12,37 +12,39 @@ from Src.particle_filter import *
 from Src.plot import *
 from Src.ble_model import *
 
-USE_IMU = True
-
-PARTICLE_N = 200
+PARTICLE_N = 200000
 
 MEASURES_PER_S = 5
-T_MAX = 12
+T_MAX = 9
 
-
-def plot_particles_scatter(particles, weights):
-    fig, ax = plt.subplots()
-    ax.grid(True)
-    # dists = np.array([i for ])
-    for i in range(particles.shape[0]):
-        # kde = scipy.stats.gaussian_kde(xs[i,:], weights=weights[i, :])
-        # ax.plot(dists, kde(dists))
-        # x = xs[i]
-        ax.scatter(i + (np.random.random(particles.shape[1])-0.5) * 0.7, 
-                    particles[i, :], s=(1 + weights[i, :]*PARTICLE_N*2))
-        # , color = "green" if (i%2) else "blue")
-    return ax
-
+def get_ble_vels(mov, t):
+    WINDOW_SIZE = 0.2
+    WINDOW_STEPS = 100
+    # t += 2
+    tss = t + np.linspace(-WINDOW_SIZE, 0, WINDOW_STEPS)
+    xss = np.array([mov.get_pos(ts) for ts in tss])
+    # print(f"  tss:{tss.shape}, xss:{xss}")
+    # res = 
+    # for freq in FREQS:
+    freq = FREQS[0]
+    signal_vals = np.array([simul_signals_shift_freq(xs, freq) for xs in xss])
+    # plot_pdf(signal_vals.real)
+    # plt.show()
+    # print(signal_vals.shape, signal_vals)
+    return estimate_speed_probf(signal_vals, tss, freq)
+    
+    
 
 
 def main():
     mov = MovementModel()
     imu = IMUModel("IMU_data.csv")
-    N = 500000
+
     np.random.seed(123)
 
     particles = pf_generate_uniform(
-        x_range=(0, 10), vel_range=(0, 3), rot_range=(0, 0.2), N=PARTICLE_N)
+        # x_range=(0, 10), vel_range=(0, 3), rot_range=(0, 0.2), N=PARTICLE_N)
+        x_range=(0, 10), vel_range=(0, 3), rot_range=(-np.pi, np.pi), N=PARTICLE_N)
 
     weights = np.ones(PARTICLE_N) / PARTICLE_N
 
@@ -59,9 +61,14 @@ def main():
     xss_prev = 0
     xss = np.zeros((*tss.shape, 2))
 
-    dists_full = np.zeros((tss.shape[0], particles.shape[0]))
-    vels_full = np.zeros((tss.shape[0], particles.shape[0]))
-    weights_full = np.zeros((tss.shape[0], particles.shape[0]))
+    particle_dists_full = np.zeros((tss.shape[0], particles.shape[0]))
+    particle_vels_full = np.zeros((tss.shape[0], particles.shape[0]))
+    particle_weights_full = np.zeros((tss.shape[0], particles.shape[0]))
+    particle_rots_full = np.zeros((tss.shape[0], particles.shape[0]))
+    # signal_vals_full = np.zeroes((tss.shape[0], 40))
+    vel_steps = np.arange(-5, 5, 0.1)
+    vel_probs_full = np.zeros((tss.shape[0], vel_steps.shape[0]))
+
 
     for i_ts in range(tss.shape[0]):
         dt = 1.0/MEASURES_PER_S
@@ -70,8 +77,9 @@ def main():
 
         # i_anchor = i_ts % 4
         print(f"{tss[i_ts]:.2f}s:")
-        xss[i_ts] = mov.update(tss[i_ts], dt)
-       
+        # xss[i_ts] = mov.update(tss[i_ts], dt)
+        xss[i_ts] = mov.get_pos(tss[i_ts])
+
         speed = (xss[i_ts] - xss_prev)/dt
         xss_prev = xss[i_ts]
         speed_true[i_ts] = (speed[0]**2+speed[1]**2)**0.5
@@ -85,79 +93,81 @@ def main():
 
         # Predict
         pf_predict_mov(particles, dt, 0.2)
-        pf_predict_vel(particles, 0.0, 0.4)
-        pf_predict_rot(particles, 0.0, 0.01)
-        # pf_predict_rot(particles, 0.0, 0.05)
+        pf_predict_vel(particles, 0.0, 1.0)
+        # pf_predict_rot(particles, 0.0, 1.0)
 
         # if (imu_rot > 10):
-        pf_predict_rot(particles, imu_rot*(np.pi/180), 0.0)
+        pf_predict_rot(particles, imu_rot*(np.pi/180), 1.0)
 
         # BLE
         signal_vals = simul_signals_shift_full(np.array([1e-100, 1e-100]), xss[i_ts])
 
-        ble_dist = estimate_distance(signal_vals)
-        dist_ble[i_ts] = ble_dist
+        # ble_dist = estimate_distance(signal_vals)
+        # dist_ble[i_ts] = ble_dist
 
+        vel_f = get_ble_vels(mov, tss[i_ts])
+        vel_probs_full[i_ts, :] = vel_f(vel_steps)
+        vel_probs_full[i_ts, :] = vel_probs_full[i_ts, :]/np.sum(vel_probs_full[i_ts, :])
+        probs = vel_f(-particles[:, 1]*np.cos(particles[:,2]))
+        pf_update_distr(weights, probs)
 
-        speed_imu[i_ts] = imu.get_speed()
         # Update
 
-        # fft_f = estimate_dist_probf(signal_vals)
-        # probs = fft_f(particle_dist)
-        # pf_update_distr(weights, probs)
-        # 
-        pf_update_norm(weights, ble_dist - particles[:, 0], 0.1)
-        # pf_update_norm(weights, speed_imu[i_ts] - particles[:, 1], 0.3)
+        fft_f = estimate_dist_probf(signal_vals)
+        probs = fft_f(particles[:, 0])
+        pf_update_distr(weights, probs)
 
-        weights_full[i_ts,:] = weights
-        dists_full[i_ts,:] = particles[:, 0]
-        vels_full[i_ts,:] = particles[:, 1]
+        # pf_update_norm(weights, ble_dist - particles[:, 0], 0.1)
+        
+        speed_imu[i_ts] = imu.get_speed()
+        # pf_update_norm(weights, speed_imu[i_ts] - particles[:, 1], 0.1)
+        pf_update_norm(weights, speed_true[i_ts] - particles[:, 1], 0.1)
+
+
+
+        particle_weights_full[i_ts,:] = weights
+        particle_dists_full[i_ts,:] = particles[:, 0]
+        particle_vels_full[i_ts,:] = particles[:, 1]
+        particle_rots_full[i_ts,:] = particles[:, 2]
         # Resample
         pf_resample_if_needed(particles, weights, 0.5)
 
-        # Estimate
-        # dist_particle[i_ts] = np.average(
-        #     particles[:, 0], weights=weights, axis=0)
-        # speed_particle[i_ts] = np.average(
-        #     particles[:, 1], weights=weights, axis=0)
-        # particle_rot[i_ts] = np.average(
-        #     particles[:, 2], weights=weights, axis=0)
+    dist_true = (xss[:, 0]**2 + xss[:, 1]**2)**.52
+    # rot_true
+    ax = plot_particles_scatter(particle_dists_full, particle_weights_full)
+    ax.plot(range(tss.shape[0]), dist_true, c="g")
+    ax = plot_particles_scatter(particle_vels_full, particle_weights_full)
+    ax.plot(range(tss.shape[0]), speed_true, c="g")
+    ax = plot_particles_scatter(particle_vels_full*np.cos(particle_rots_full), particle_weights_full)
+    # ax = plot_particles_color(particle_vels_full*np.cos(particle_rots_full), particle_weights_full)
+    # ax.plot(range(tss.shape[0]), speed_true*np.cos(), c="g")
 
-        # print(f"  imu_rot:{imu_rot:.2f}; rot:{np.average(particles[:, 2], weights=weights, axis=0)*180/np.pi:.2f}")
-        # print(f"  imu:{imu_speed:.2f}m/s; part:{speed_particle[i_ts]:.2f}m/s")
-        # print(f"  ble:{ble_dist:.2f}; part:{dist_particle[i_ts]:.2f}")
-        # print("  err1:",np.sqrt(np.square(xss_predicted[i_ts,:2] - xss[i_ts,:2]).mean()))
-        # print("    err:",np.linalg.norm(xss_predicted[i_ts, 0:2] - xss[i_ts, 0:2], axis=0))
+    ax = plot_particles_scatter((particle_rots_full/np.pi)*180, particle_weights_full)
+    # ax.plot(range(tss.shape[0]), speed_true, c="g")
 
-    # print("Error:",np.sqrt(np.square(xss_predicted[2:,:2] - xss[2:,:2]).mean()))
-    # print("Error:",np.sqrt(np.square(np.linalg.norm(xss_predicted[2:, 0:2] - xss[2:, 0:2], axis=1))).mean())
+    # fig, ax = plt.subplots()
+    # ax.imshow(vel_probs_full[1::, :], aspect="auto", cmap="viridis",
+    #              )
 
-    dist_true = (xss[:, 0]**2 + xss[:, 1]**2)**.5
-    ax = plot_particles_scatter(dists_full, weights_full)
-    ax.plot(range(tss.shape[0]), dist_true)
-    plot_particles_scatter(vels_full, weights_full)
+    # fig, ax = plt.subplots()
+    # ax.set_xlim([-5.5, 5.5])
+    # ax.set_ylim([0, 1])
 
-    # fig_pos, ax = plot_positions(xss, xss_predicted, ANCHOR_COORDS, 6, 5)
-    # fig_pos, ax = plot_dist(dist_true,
-    #                         {
-    #                             "ble_only": dist_ble,
-    #                             "particle": dist_particle,
-    #                         }, tss)
+    #         # print(vel_probs_full[i_ts, :])
+    #     ax.plot(vel_steps, vel_probs_full[i_ts2, :], label=f"{i_ts2}")
+    # ax.legend()
+    # plt.grid(True)
 
-    # fig_pos, ax = plot_dist(speed_true,
-    #                         {
-    #                             "imu": speed_imu,
-    #                             "particle": speed_particle,
-    #                             "rot":particle_rot/np.pi
+    fig, ax = plt.subplots()
+    ax.imshow(vel_probs_full.T[::, :], aspect="auto", cmap="inferno", # viridis
+                  extent=[0, tss.shape[0], 0, 100, ])
 
-    #                         }, tss)
+    # plot_pdf(vel_probs_full[10, :])
+    # ax.plot(range(tss.shape[0]), ro, c="g")
+    # plot_particles_color(particle_dists_full, particle_weights_full)
+    # plot_particles_color(particle_vels_full[1:], particle_weights_full[1:])
+    # plot_particles_color((particle_rots_full/np.pi)*180, particle_weights_full)
 
-    # fig_pos, ax = plot_dist(180*particle_rot/np.pi,
-    #                     {
-    #                     }, tss)
-    # fig_err, ax = plot_errors(xss_predicted[2:,:2] - xss[2:,:2], 1, 1)
-
-    # fig_err2, ax = plot_abserr(xss_predicted[0:,:2] - xss[0:,:2], tss)
 
     plt.show()
     # plotly.io.write_image(fig2, 'error.pdf', format='pdf')

@@ -12,7 +12,7 @@ C_SPEED = 299_792_458
 SIGNAL_STD = 0.0
 
 # Returns fft_data, fft_freqs
-def fft(vals, ts, n_mult = 1000):
+def fft(vals, ts, n_mult = 123):
     sample_rate = ts.shape[-1]/(ts[-1] - ts[0])
     n = int(vals.shape[-1] * n_mult)
     # return np.abs(np.fft.fft(vals, n=n)), np.fft.fftfreq(n)*sample_rate
@@ -42,7 +42,7 @@ def simul_signals_shift_full(anchor, target)->np.ndarray:
     virt_targets = [
         # (target, 0.2),
         (target, 1),
-        # (np.array([target[0], 10 - target[1], target[2]]), 0.4),
+        # (np.array([2.5, target[1]]), 0.9),
         # (np.array([target[0],  - target[1], target[2]]), 0.4),
         # (np.array([12 - target[0], target[1], target[2]]), 0.4),
         # (np.array([-target[0], target[1], target[2]]), 0.4),
@@ -68,6 +68,37 @@ def simul_signals_shift_full(anchor, target)->np.ndarray:
 
     pass
 
+def simul_signals_shift_freq(target, freq)->np.ndarray:
+    virt_targets = [
+        # (target, 0.2),
+        (target, 1),
+        # (np.array([2.5, target[1]]), 0.9),
+        # (np.array([target[0],  - target[1], target[2]]), 0.4),
+        # (np.array([12 - target[0], target[1], target[2]]), 0.4),
+        # (np.array([-target[0], target[1], target[2]]), 0.4),
+        # (np.array([target[0], target[1], -target[2]]), 0.4),
+        ]
+
+
+    # signal_v = np.zeros(freqs.shape[0], dtype=np.complex128)
+    signal = 0
+    for virt_target, reflection_coeff in virt_targets:
+        path_vector = virt_target + 1e-100
+        path_len = np.sqrt(path_vector.dot(path_vector))
+
+        omega_v = 2*np.pi*freq
+        a_v = C_SPEED / (2 * path_len * omega_v)  # amplitude from distance
+        # a_v = 1  # amplitude from distance
+
+        phi_v = (path_len * omega_v) / C_SPEED  # phase from distance
+        path_signal = reflection_coeff * a_v * (np.exp(-1j * phi_v) + np.random.normal(0, SIGNAL_STD)+1j*np.random.normal(0, SIGNAL_STD))
+
+        signal += path_signal
+
+    return signal
+
+    pass
+
 
 # dists: 0:10, 0.01
 def estimate_dist_probf(signal_v, freqs=FREQS):
@@ -78,3 +109,10 @@ def estimate_dist_probf(signal_v, freqs=FREQS):
     res = interp1d(fft_freqs*C_SPEED, fft_vals**2)
     return lambda x:res(-x)
     # return fft_vals, fft_freqs*C_SPEED
+
+def estimate_speed_probf(signal_v, tss, freq):
+    fft_vals, fft_freqs = fft(signal_v, tss-tss[0])
+    # dists = np.arange(0, dist_max*100)
+    # probs = np.zeros([dist_max*100])
+    res = interp1d((fft_freqs*C_SPEED)/freq, fft_vals**2)
+    return res

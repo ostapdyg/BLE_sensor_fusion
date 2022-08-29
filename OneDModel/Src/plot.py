@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import scipy.stats
+rng = np.random.default_rng()
 
 def plot_positions(pos_true, w_m=6, h_m=5):
     # if(w_m is None):
@@ -164,3 +165,33 @@ def plot_pdf(probs):
     ax.plot(np.arange(probs.shape[0]), probs)
     plt.grid(True)
     return fig, ax
+
+
+def plot_particles_scatter(particles, weights):
+    fig, ax = plt.subplots()
+    ax.grid(True)
+    for i in range(particles.shape[0]):
+        sample = rng.choice(particles.shape[1], 1000)
+        ax.scatter(i + (np.random.random(sample.shape[0])-0.5) * 0.7,
+                   particles[i, sample], s=(1 + weights[i, sample]*particles.shape[1]*2),  alpha=0.5, edgecolors='none' )
+        ax.scatter(i, np.average(
+            particles[i, sample], weights=weights[i, sample]), marker="x", c="r")
+    return ax
+
+
+def plot_particles_color(particles, weights):
+    fig, ax = plt.subplots()
+    ax.grid(True)
+    xs = np.arange(-10, 10, 0.05)
+    img = np.zeros([*xs.shape, particles.shape[0]], dtype=float)
+
+    for i in range(particles.shape[0]):
+        # kde = scipy.stats.gaussian_kde(particles[i, :], bw_method=1, weights=weights[i, :], )
+        # img[:, i] = kde(xs)
+        img[:, i] = np.bincount(np.digitize(particles[i, :], xs) ,weights[i, :], len(xs))
+
+        # img[:, i] = np.bincount(np.abs(particles[i, :]*100).astype(int), weights=weights[i, :])
+    p = ax.imshow(img[::-1, :], aspect="auto", cmap="inferno",
+                  extent=[0, particles.shape[0], 0, 5, ])
+    fig.colorbar(p)
+    return ax
